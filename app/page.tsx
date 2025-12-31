@@ -134,16 +134,16 @@ export default function HomePage() {
             marks="95 / 100"
           />
           <TopperCard
+            img="/toppers/Mahaveer.png"
+            name="Mahaveer Gour"
+            year="2023"
+            marks="91 / 100" 
+          />
+          <TopperCard
             img="/toppers/harshit.png"
             name="Harshit Singh"
             year="2023"
-            marks="88 / 100" 
-          />
-          <TopperCard
-            img="/toppers/mahaveer.png"
-            name="Mahaveer Gour"
-            year="2023"
-            marks="91 / 100"
+            marks="88 / 100"
           />
         </div>
       </section>
