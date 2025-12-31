@@ -62,7 +62,7 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-4xl md:text-6xl xl:text-7xl font-extrabold mb-6">
-            Mistii Classes
+            Vikram Classes
           </h1>
 
           <p className="max-w-3xl mx-auto text-base md:text-lg text-gray-200 mb-12">
