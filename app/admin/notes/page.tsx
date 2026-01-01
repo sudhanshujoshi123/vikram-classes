@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
 import { useState } from "react";
-import { UploadCloud, FileText, BookOpen } from "lucide-react";
+import { UploadCloud, FileText, Languages } from "lucide-react";
 
 export default function NotesUploadPage() {
   const [classNum, setClassNum] = useState("11");
   const [subject] = useState("Chemistry");
-  const [bookName, setBookName] = useState("");
+  const [medium, setMedium] = useState("English");
   const [chapterName, setChapterName] = useState("");
   const [pdf, setPdf] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!bookName || !chapterName || !pdf) {
+    if (!chapterName || !pdf) {
       alert("Saari fields bharo");
       return;
     }
@@ -20,7 +20,7 @@ export default function NotesUploadPage() {
     const formData = new FormData();
     formData.append("class", classNum);
     formData.append("subject", subject);
-    formData.append("book_name", bookName);
+    formData.append("medium", medium);
     formData.append("chapter_name", chapterName);
     formData.append("pdf", pdf);
 
@@ -35,12 +35,11 @@ export default function NotesUploadPage() {
     setLoading(false);
 
     if (!res.ok) {
-      alert(data.error);
+      alert(data.error || "Upload failed");
       return;
     }
 
     alert("Notes uploaded successfully ✅");
-    setBookName("");
     setChapterName("");
     setPdf(null);
   };
@@ -90,17 +89,22 @@ export default function NotesUploadPage() {
             />
           </div>
 
-          {/* BOOK */}
+          {/* MEDIUM */}
           <div>
             <label className="text-sm font-semibold text-gray-700">
-              Book Name
+              Medium
             </label>
-            <input
-              placeholder="e.g. Physical Chemistry Part 1"
-              value={bookName}
-              onChange={(e) => setBookName(e.target.value)}
-              className="mt-1 w-full rounded-xl border px-4 py-2 focus:ring-2 focus:ring-indigo-400"
-            />
+            <div className="relative mt-1">
+              <Languages className="absolute left-3 top-2.5 text-gray-400" size={18} />
+              <select
+                value={medium}
+                onChange={(e) => setMedium(e.target.value)}
+                className="w-full rounded-xl border pl-10 pr-4 py-2 focus:ring-2 focus:ring-indigo-400"
+              >
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+              </select>
+            </div>
           </div>
 
           {/* CHAPTER */}
