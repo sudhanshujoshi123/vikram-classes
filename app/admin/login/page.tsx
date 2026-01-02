@@ -16,7 +16,7 @@ export default function AdminLogin() {
     setError('');
 
     // 🔒 Mock admin login (replace with API later)
-    if (email === 'vs@gmail.com' && password === '1234') {
+    if (email === 'vs@gmail.com' && password === '2592') {
       localStorage.setItem(
         'admin',
         JSON.stringify({ name: 'Admin', email })

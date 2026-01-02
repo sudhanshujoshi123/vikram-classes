@@ -8,12 +8,14 @@ import {
   FileText,
 } from 'lucide-react';
 
+/* ================= TYPES ================= */
+
 type TabType = 'notes' | 'fees' | 'performance';
 
 interface Note {
+  medium: string;
   class: string;
   subject: string;
-  book_name: string;
   chapter_name: string;
   pdf_url: string;
 }
@@ -30,11 +32,17 @@ interface MonthlyFee {
   amount: number;
 }
 
+/* ================= COMPONENT ================= */
+
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('notes');
 
   const [notes, setNotes] = useState<Note[]>([]);
-  const [loadingNotes, setLoadingNotes] = useState(true);
+  const [loadingNotes, setLoadingNotes] = useState(false);
+
+  const [medium, setMedium] = useState('');
+  const [classNum, setClassNum] = useState('');
+  const [subject, setSubject] = useState('');
 
   const [studentName, setStudentName] = useState('Student');
 
@@ -57,21 +65,28 @@ export default function StudentDashboard() {
 
   /* ================= FETCH NOTES ================= */
   useEffect(() => {
+    if (!medium || !classNum || !subject) {
+      setNotes([]);
+      return;
+    }
+
     const fetchNotes = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/student/notes', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        setLoadingNotes(true);
+        const res = await fetch(
+          `/api/student/notes?medium=${medium}&class=${classNum}&subject=${subject}`
+        );
         const data = await res.json();
         setNotes(data.notes || []);
       } catch {
+        setNotes([]);
       } finally {
         setLoadingNotes(false);
       }
     };
+
     fetchNotes();
-  }, []);
+  }, [medium, classNum, subject]);
 
   /* ================= FETCH FEES ================= */
   useEffect(() => {
@@ -109,9 +124,6 @@ export default function StudentDashboard() {
     };
     fetchPerformance();
   }, []);
-
-  const class11 = notes.filter(n => n.class === '11');
-  const class12 = notes.filter(n => n.class === '12');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50">
@@ -153,139 +165,167 @@ export default function StudentDashboard() {
         {/* ================= CONTENT ================= */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8">
 
-          {/* ===== NOTES ===== */}
+          {/* ================= NOTES ================= */}
           {activeTab === 'notes' && (
             <>
-              <h2 className="text-2xl font-bold mb-8 flex items-center gap-2">
-                <FileText /> Chemistry Notes
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <FileText /> Study Notes
               </h2>
 
-              {loadingNotes && <p className="text-center">Loading notes...</p>}
+              {/* FILTERS */}
+              <div className="grid md:grid-cols-3 gap-4 mb-8">
+                <select
+                  value={medium}
+                  onChange={e => setMedium(e.target.value)}
+                  className="border rounded-xl px-4 py-3"
+                >
+                  <option value="">Select Medium</option>
+                  <option value="Hindi">Hindi Medium</option>
+                  <option value="English">English Medium</option>
+                </select>
 
-              {!loadingNotes && notes.length === 0 && (
-                <p className="text-center text-red-500">No notes uploaded yet</p>
+                <select
+                  value={classNum}
+                  onChange={e => setClassNum(e.target.value)}
+                  className="border rounded-xl px-4 py-3"
+                >
+                  <option value="">Select Class</option>
+                  <option value="11">Class 11</option>
+                  <option value="12">Class 12</option>
+                </select>
+
+                <select
+                  value={subject}
+                  onChange={e => setSubject(e.target.value)}
+                  className="border rounded-xl px-4 py-3"
+                >
+                  <option value="">Select Subject</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Physics">Physics</option>
+                  <option value="Maths">Maths</option>
+                </select>
+              </div>
+
+              {loadingNotes && (
+                <p className="text-center">Loading notes...</p>
               )}
 
-              <div className="grid lg:grid-cols-2 gap-10">
-                <ClassPanel title="Class 11" notes={class11} />
-                <ClassPanel title="Class 12" notes={class12} />
+              {!loadingNotes && notes.length === 0 && (
+                <p className="text-center text-gray-500">
+                  No notes found
+                </p>
+              )}
+
+              <div className="space-y-4">
+                {notes.map((n, i) => (
+                  <div
+                    key={i}
+                    className="flex justify-between items-center bg-white rounded-xl p-5 shadow hover:shadow-lg transition"
+                  >
+                    <div>
+                      <p className="font-bold text-lg">
+                        {n.chapter_name}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {n.subject} • Class {n.class} • {n.medium}
+                      </p>
+                    </div>
+
+                    <a
+                      href={n.pdf_url}
+                      target="_blank"
+                      className="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:scale-105 transition"
+                    >
+                      Open PDF
+                    </a>
+                  </div>
+                ))}
               </div>
             </>
           )}
 
-          {/* ===== FEES (MONTH WISE) ===== */}
+          {/* ================= FEES ================= */}
           {activeTab === 'fees' && (
             <div className="space-y-8">
-
-              {/* TOTAL FEES */}
               <div className="flex justify-center">
                 <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-3xl p-10 shadow-2xl w-full max-w-md text-center">
                   <h2 className="text-2xl font-bold mb-4">
                     Total Fees Submitted
                   </h2>
-
                   {loadingFees ? (
-                    <p className="animate-pulse text-lg">Loading...</p>
+                    <p>Loading...</p>
                   ) : (
                     <p className="text-5xl font-extrabold">
                       ₹ {totalFees}
                     </p>
                   )}
-
-                  <p className="mt-3 opacity-90">
-                    Till date submitted fees
-                  </p>
                 </div>
               </div>
 
-              {/* MONTHLY FEES */}
               {!loadingFees && (
                 <div className="max-w-xl mx-auto">
                   <h3 className="text-xl font-bold mb-4 text-center">
                     Month Wise Breakdown
                   </h3>
-
-                  {monthlyFees.length === 0 ? (
-                    <p className="text-center text-gray-500">
-                      No monthly fee records found
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {monthlyFees.map((f, i) => (
-                        <div
-                          key={i}
-                          className="flex justify-between items-center bg-white rounded-xl p-4 shadow hover:shadow-lg transition"
-                        >
-                          <span className="font-semibold">
-                            {new Date(f.month + '-01').toLocaleString('en-IN', {
-                              month: 'long',
-                              year: 'numeric',
-                            })}
-                          </span>
-                          <span className="font-bold text-green-600">
-                            ₹ {f.amount}
-                          </span>
-                        </div>
-                      ))}
+                  {monthlyFees.map((f, i) => (
+                    <div
+                      key={i}
+                      className="flex justify-between bg-white p-4 rounded-xl shadow mb-2"
+                    >
+                      <span>
+                        {new Date(f.month + '-01').toLocaleString('en-IN', {
+                          month: 'long',
+                          year: 'numeric',
+                        })}
+                      </span>
+                      <span className="font-bold text-green-600">
+                        ₹ {f.amount}
+                      </span>
                     </div>
-                  )}
+                  ))}
                 </div>
               )}
             </div>
           )}
 
-          {/* ===== PERFORMANCE ===== */}
+          {/* ================= PERFORMANCE ================= */}
           {activeTab === 'performance' && (
             <>
               <h2 className="text-2xl font-bold mb-6">
                 Performance Overview
               </h2>
 
-              {loadingPerformance && <p>Loading performance...</p>}
+              {loadingPerformance && <p>Loading...</p>}
 
               {!loadingPerformance && performance.length === 0 && (
-                <p className="text-red-500">No performance records found</p>
+                <p>No performance data</p>
               )}
 
-              {!loadingPerformance && performance.length > 0 && (
-                <div className="grid md:grid-cols-2 gap-6">
-                  {performance.map((p, i) => {
-                    const percent = Math.round(
-                      (p.marks / p.max_marks) * 100
-                    );
-
-                    return (
-                      <div
-                        key={i}
-                        className="border rounded-2xl p-6 shadow-lg hover:shadow-xl transition"
-                      >
-                        <h3 className="font-bold text-lg mb-2">
-                          {p.test_name}
-                        </h3>
-
-                        <p className="text-sm mb-2">
-                          Marks: <strong>{p.marks}</strong> / {p.max_marks}
-                        </p>
-
-                        <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
-                          <div
-                            className="h-3 rounded-full bg-indigo-600"
-                            style={{ width: `${percent}%` }}
-                          />
-                        </div>
-
-                        <p className="text-sm font-semibold">
-                          Percentage: {percent}%
-                        </p>
-
-                        <p className="text-xs text-gray-600 mt-2">
-                          {p.remarks}
-                        </p>
+              <div className="grid md:grid-cols-2 gap-6">
+                {performance.map((p, i) => {
+                  const percent = Math.round(
+                    (p.marks / p.max_marks) * 100
+                  );
+                  return (
+                    <div
+                      key={i}
+                      className="border rounded-2xl p-6 shadow"
+                    >
+                      <h3 className="font-bold mb-2">
+                        {p.test_name}
+                      </h3>
+                      <p>{p.marks} / {p.max_marks}</p>
+                      <div className="w-full bg-gray-200 h-3 rounded-full mt-2">
+                        <div
+                          className="bg-indigo-600 h-3 rounded-full"
+                          style={{ width: `${percent}%` }}
+                        />
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                      <p className="mt-2">{percent}%</p>
+                    </div>
+                  );
+                })}
+              </div>
             </>
           )}
         </div>
@@ -294,55 +334,20 @@ export default function StudentDashboard() {
   );
 }
 
-/* ================= COMPONENTS ================= */
+/* ================= TAB ================= */
 
 function Tab({ icon, label, active, onClick }: any) {
   return (
     <button
       onClick={onClick}
       className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold shadow transition
-        ${active
-          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
-          : 'bg-white hover:bg-indigo-50'
-        }`}
+      ${active
+        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+        : 'bg-white hover:bg-indigo-50'
+      }`}
     >
       {icon}
       {label}
     </button>
-  );
-}
-
-function ClassPanel({ title, notes }: any) {
-  return (
-    <div className="border rounded-2xl shadow-lg overflow-hidden">
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 text-xl font-bold">
-        {title}
-      </div>
-
-      {notes.length === 0 ? (
-        <p className="p-6 text-center text-gray-500">No notes available</p>
-      ) : (
-        notes.map((n: Note, i: number) => (
-          <div
-            key={i}
-            className="p-6 border-t flex justify-between items-center hover:bg-indigo-50 transition"
-          >
-            <div>
-              <p className="font-bold">{n.book_name}</p>
-              <p className="text-sm text-gray-600">
-                {n.subject} • {n.chapter_name}
-              </p>
-            </div>
-            <a
-              href={n.pdf_url}
-              target="_blank"
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:scale-105 transition"
-            >
-              Open PDF
-            </a>
-          </div>
-        ))
-      )}
-    </div>
   );
 }

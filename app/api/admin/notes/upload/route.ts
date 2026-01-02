@@ -1,54 +1,50 @@
 import { NextResponse } from "next/server";
+import { pool } from "@/lib/db";
 import cloudinary from "@/lib/cloudinary";
 
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
 
-    const classNum = formData.get("class") as string;
-    const subject = formData.get("subject") as string;
-    const medium = formData.get("medium") as string;
-    const chapterName = formData.get("chapter_name") as string;
+    const medium = formData.get("medium");
+    const classNum = formData.get("class");
+    const subject = formData.get("subject");
+    const chapter = formData.get("chapter");
     const file = formData.get("pdf") as File;
 
-    // ✅ VALIDATION
-    if (!classNum || !subject || !medium || !chapterName || !file) {
+    if (!medium || !classNum || !subject || !chapter || !file) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { error: "All fields required" },
         { status: 400 }
       );
     }
 
-    // ✅ FILE BUFFER
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const buffer = Buffer.from(await file.arrayBuffer());
 
-    // ✅ CLOUDINARY UPLOAD
-    const uploadResult: any = await new Promise((resolve, reject) => {
+    const upload: any = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
-        {
-          folder: `notes/class-${classNum}/${subject}/${medium}`,
-          resource_type: "auto",
-        },
-        (error, result) => {
-          if (error) reject(error);
+        { resource_type: "raw", folder: "notes" },
+        (err, result) => {
+          if (err) reject(err);
           else resolve(result);
         }
       ).end(buffer);
     });
 
-    // 👉 yaha future me DB insert karega
-    // await prisma.notes.create({...})
+    await pool.query(
+      `
+      INSERT INTO notes (medium, class, subject, chapter_name, pdf_url)
+      VALUES ($1, $2, $3, $4, $5)
+      `,
+      [medium, classNum, subject, chapter, upload.secure_url]
+    );
 
-    return NextResponse.json({
-      success: true,
-      message: "Notes uploaded successfully",
-      fileUrl: uploadResult.secure_url,
-    });
-  } catch (error) {
-    console.error("UPLOAD ERROR:", error);
+    return NextResponse.json({ success: true });
+
+  } catch (err) {
+    console.error("UPLOAD ERROR:", err);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Upload failed" },
       { status: 500 }
     );
   }

@@ -1,27 +1,39 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const result = await pool.query(`
-      SELECT 
-        nb.class,
-        nb.subject,
-        nb.book_name,
-        nc.chapter_name,
-        nc.pdf_url
-      FROM notes_books nb
-      JOIN notes_chapters nc ON nc.book_id = nb.id
-      ORDER BY nb.class, nb.book_name, nc.created_at DESC
-    `);
+    const { searchParams } = new URL(req.url);
 
-    return NextResponse.json({
-      notes: result.rows
-    });
+    const medium = searchParams.get("medium");
+    const classNum = searchParams.get("class");
+    const subject = searchParams.get("subject");
+
+    if (!medium || !classNum || !subject) {
+      return NextResponse.json(
+        { notes: [] },
+        { status: 200 }
+      );
+    }
+
+    const result = await pool.query(
+      `
+      SELECT chapter_name, pdf_url
+      FROM notes
+      WHERE medium = $1
+        AND class = $2
+        AND subject = $3
+      ORDER BY created_at DESC
+      `,
+      [medium, classNum, subject]
+    );
+
+    return NextResponse.json({ notes: result.rows });
+
   } catch (err) {
-    console.error("Student notes error:", err);
+    console.error("STUDENT NOTES ERROR:", err);
     return NextResponse.json(
-      { error: "Failed to fetch notes" },
+      { error: "Failed to load notes" },
       { status: 500 }
     );
   }
