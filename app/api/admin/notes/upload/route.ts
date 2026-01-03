@@ -6,10 +6,10 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
 
-    const medium = formData.get("medium");
-    const classNum = formData.get("class");
-    const subject = formData.get("subject");
-    const chapter = formData.get("chapter");
+    const medium = formData.get("medium") as string;
+    const classNum = formData.get("class") as string;
+    const subject = formData.get("subject") as string;
+    const chapter = formData.get("chapter") as string;
     const file = formData.get("pdf") as File;
 
     if (!medium || !classNum || !subject || !chapter || !file) {
@@ -23,7 +23,10 @@ export async function POST(req: Request) {
 
     const upload: any = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
-        { resource_type: "raw", folder: "notes" },
+        {
+          resource_type: "raw", // ✔ SAFE
+          folder: "notes",
+        },
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
