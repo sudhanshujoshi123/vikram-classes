@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import {
   User,
   Mail,
@@ -46,7 +47,7 @@ export default function StudentRegister() {
 
       alert('Registered successfully!');
       router.push('/login');
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -64,7 +65,10 @@ export default function StudentRegister() {
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
 
       {/* REGISTER CARD */}
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
         className="relative z-10 w-full max-w-md mx-4
         bg-white/10 backdrop-blur-xl border border-white/20
         rounded-3xl shadow-2xl p-8 md:p-10 text-white"
@@ -72,11 +76,15 @@ export default function StudentRegister() {
 
         {/* HEADER */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="bg-cyan-500/20 text-cyan-300 p-4 rounded-2xl">
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            className="flex justify-center mb-4"
+          >
+            <div className="bg-cyan-500/20 text-cyan-300 p-4 rounded-2xl shadow-lg">
               <GraduationCap size={32} />
             </div>
-          </div>
+          </motion.div>
 
           <h1 className="text-3xl font-extrabold tracking-wide">
             Student Registration
@@ -89,7 +97,7 @@ export default function StudentRegister() {
         {/* ERROR */}
         {error && (
           <div className="bg-red-500/20 border border-red-500/30 text-red-300
-            p-3 rounded-xl mb-5 text-sm text-center">
+          p-3 rounded-xl mb-5 text-sm text-center">
             {error}
           </div>
         )}
@@ -97,7 +105,7 @@ export default function StudentRegister() {
         {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-5">
 
-          <InputField
+          <AnimatedInput
             icon={<User size={18} />}
             placeholder="Full Name"
             value={name}
@@ -105,7 +113,7 @@ export default function StudentRegister() {
             type="text"
           />
 
-          <InputField
+          <AnimatedInput
             icon={<Mail size={18} />}
             placeholder="Email Address"
             value={email}
@@ -114,7 +122,7 @@ export default function StudentRegister() {
           />
 
           {/* CLASS */}
-          <div>
+          <div className="transition-transform focus-within:scale-[1.02]">
             <label className="block text-sm text-gray-300 mb-2">
               Class
             </label>
@@ -136,7 +144,7 @@ export default function StudentRegister() {
             </div>
           </div>
 
-          <InputField
+          <AnimatedInput
             icon={<Lock size={18} />}
             placeholder="Password"
             value={password}
@@ -144,17 +152,19 @@ export default function StudentRegister() {
             type="password"
           />
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
             type="submit"
             disabled={loading}
             className="w-full flex items-center justify-center gap-2
             bg-gradient-to-r from-cyan-500 to-blue-600
             py-3 rounded-xl font-semibold shadow-xl
-            hover:scale-105 transition disabled:opacity-60"
+            disabled:opacity-60"
           >
             <UserPlus size={18} />
             {loading ? 'Registering...' : 'Create Account'}
-          </button>
+          </motion.button>
         </form>
 
         {/* FOOTER */}
@@ -167,14 +177,14 @@ export default function StudentRegister() {
             Login here
           </span>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }
 
-/* ================= INPUT FIELD ================= */
+/* ================= ANIMATED INPUT ================= */
 
-function InputField({
+function AnimatedInput({
   icon,
   placeholder,
   value,
@@ -188,7 +198,8 @@ function InputField({
   type: string;
 }) {
   return (
-    <div className="relative">
+    <div className="relative transition-transform duration-300
+    focus-within:scale-[1.02]">
       <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
         {icon}
       </div>

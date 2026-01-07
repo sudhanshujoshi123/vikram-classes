@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, LogIn, GraduationCap } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function StudentLogin() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function StudentLogin() {
 
       localStorage.setItem('token', data.token);
       router.push('/student/dashboard');
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -43,26 +44,38 @@ export default function StudentLogin() {
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
-      {/* BACKGROUND IMAGE */}
+      {/* BACKGROUND */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center scale-105"
         style={{ backgroundImage: "url('/chemistry-bg.jpg')" }}
       />
-      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
 
       {/* LOGIN CARD */}
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 40, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
         className="relative z-10 w-full max-w-md mx-4
-        bg-white/10 backdrop-blur-xl border border-white/20
-        rounded-3xl shadow-2xl p-8 md:p-10 text-white"
+        bg-white/10 backdrop-blur-2xl border border-white/20
+        rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)]
+        p-8 md:p-10 text-white"
       >
 
         {/* HEADER */}
-        <div className="text-center mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-8"
+        >
           <div className="flex justify-center mb-4">
-            <div className="bg-cyan-500/20 text-cyan-300 p-4 rounded-2xl">
-              <GraduationCap size={32} />
-            </div>
+            <motion.div
+              whileHover={{ rotate: 5, scale: 1.05 }}
+              className="bg-cyan-500/20 text-cyan-300 p-4 rounded-2xl"
+            >
+              <GraduationCap size={34} />
+            </motion.div>
           </div>
 
           <h1 className="text-3xl font-extrabold tracking-wide">
@@ -71,20 +84,24 @@ export default function StudentLogin() {
           <p className="text-gray-300 text-sm mt-1">
             Login to your Vikram Classes dashboard
           </p>
-        </div>
+        </motion.div>
 
         {/* ERROR */}
         {error && (
-          <div className="bg-red-500/20 border border-red-500/30 text-red-300
-            p-3 rounded-xl mb-5 text-sm text-center">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-500/20 border border-red-500/30
+              text-red-300 p-3 rounded-xl mb-5 text-sm text-center"
+          >
             {error}
-          </div>
+          </motion.div>
         )}
 
         {/* FORM */}
         <form onSubmit={handleLogin} className="space-y-5">
 
-          <InputField
+          <AnimatedInput
             icon={<Mail size={18} />}
             type="email"
             placeholder="Email address"
@@ -92,7 +109,7 @@ export default function StudentLogin() {
             onChange={setEmail}
           />
 
-          <InputField
+          <AnimatedInput
             icon={<Lock size={18} />}
             type="password"
             placeholder="Password"
@@ -100,17 +117,19 @@ export default function StudentLogin() {
             onChange={setPassword}
           />
 
-          <button
-            type="submit"
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
             disabled={loading}
+            type="submit"
             className="w-full flex items-center justify-center gap-2
               bg-gradient-to-r from-cyan-500 to-blue-600
               py-3 rounded-xl font-semibold shadow-xl
-              hover:scale-105 transition disabled:opacity-60"
+              disabled:opacity-60"
           >
             <LogIn size={18} />
             {loading ? 'Logging in...' : 'Login'}
-          </button>
+          </motion.button>
         </form>
 
         {/* FOOTER */}
@@ -123,14 +142,14 @@ export default function StudentLogin() {
             Register here
           </span>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }
 
-/* ================= INPUT FIELD ================= */
+/* ================= INPUT ================= */
 
-function InputField({
+function AnimatedInput({
   icon,
   type,
   placeholder,
@@ -144,7 +163,9 @@ function InputField({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="relative">
+    <div className="relative transition-transform duration-300
+      focus-within:scale-[1.02]"
+    >
       <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
         {icon}
       </div>
@@ -156,8 +177,8 @@ function InputField({
         onChange={(e) => onChange(e.target.value)}
         required
         className="w-full pl-11 pr-4 py-3 rounded-xl bg-black/40
-          border border-white/20 text-white placeholder-gray-400
-          focus:ring-2 focus:ring-cyan-400 focus:outline-none"
+        border border-white/20 text-white placeholder-gray-400
+        focus:ring-2 focus:ring-cyan-400 focus:outline-none"
       />
     </div>
   );

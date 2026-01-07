@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { ShieldCheck, Mail, Lock, LogIn } from 'lucide-react';
 
 export default function AdminLogin() {
@@ -38,7 +39,10 @@ export default function AdminLogin() {
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
 
       {/* LOGIN CARD */}
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
         className="relative z-10 w-full max-w-md mx-4
         bg-white/10 backdrop-blur-xl border border-white/20
         rounded-3xl shadow-2xl p-8 md:p-10 text-white"
@@ -46,11 +50,15 @@ export default function AdminLogin() {
 
         {/* HEADER */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="bg-purple-500/20 text-purple-300 p-4 rounded-2xl">
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            className="flex justify-center mb-4"
+          >
+            <div className="bg-purple-500/20 text-purple-300 p-4 rounded-2xl shadow-lg">
               <ShieldCheck size={32} />
             </div>
-          </div>
+          </motion.div>
 
           <h1 className="text-3xl font-extrabold tracking-wide">
             Admin Login
@@ -73,55 +81,61 @@ export default function AdminLogin() {
         {/* FORM */}
         <form onSubmit={handleLogin} className="space-y-5">
 
-          <InputField
+          <AnimatedInput
             icon={<Mail size={18} />}
             type="email"
             placeholder="Admin Email"
             value={email}
             onChange={setEmail}
+            ring="focus:ring-purple-400"
           />
 
-          <InputField
+          <AnimatedInput
             icon={<Lock size={18} />}
             type="password"
             placeholder="Password"
             value={password}
             onChange={setPassword}
+            ring="focus:ring-purple-400"
           />
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
             type="submit"
             className="w-full flex items-center justify-center gap-2
             bg-gradient-to-r from-purple-500 to-indigo-600
-            py-3 rounded-xl font-semibold shadow-xl
-            hover:scale-105 transition disabled:opacity-60"
+            py-3 rounded-xl font-semibold shadow-xl"
           >
             <LogIn size={18} />
             Login
-          </button>
+          </motion.button>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }
 
-/* ================= INPUT FIELD ================= */
+/* ================= ANIMATED INPUT ================= */
 
-function InputField({
+function AnimatedInput({
   icon,
   type,
   placeholder,
   value,
   onChange,
+  ring,
 }: {
   icon: React.ReactNode;
   type: string;
   placeholder: string;
   value: string;
   onChange: (v: string) => void;
+  ring: string;
 }) {
   return (
-    <div className="relative">
+    <div className="relative transition-transform duration-300
+    focus-within:scale-[1.02]">
       <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
         {icon}
       </div>
@@ -131,9 +145,9 @@ function InputField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required
-        className="w-full pl-11 pr-4 py-3 rounded-xl bg-black/40
+        className={`w-full pl-11 pr-4 py-3 rounded-xl bg-black/40
         border border-white/20 text-white placeholder-gray-400
-        focus:ring-2 focus:ring-purple-400 focus:outline-none"
+        focus:outline-none focus:ring-2 ${ring}`}
       />
     </div>
   );

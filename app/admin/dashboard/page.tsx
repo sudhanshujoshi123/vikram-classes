@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /* ================= TYPES ================= */
 interface Student {
@@ -26,12 +27,13 @@ interface Student {
 export default function AdminDashboard() {
   const router = useRouter();
 
-  /* ===== AUTH CHECK ===== */
+  /* ===== AUTH ===== */
   useEffect(() => {
     const admin = localStorage.getItem('admin');
     if (!admin) router.replace('/admin/login');
   }, [router]);
 
+  /* ===== STATES ===== */
   const [students, setStudents] = useState<Student[]>([]);
   const [activeTab, setActiveTab] =
     useState<'students' | 'fees' | 'notes' | 'performance'>('students');
@@ -41,13 +43,13 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const [perf, setPerf] = useState({
-    student_id: '',
-    test_name: '',
-    marks: '',
-    max_marks: '',
-    remarks: '',
-  });
+ const [perf, setPerf] = useState({
+  student_id: '',
+  test_name: '',
+  marks: '',
+  max_marks: '',
+  remarks: '',
+});
 
   /* ================= FETCH ================= */
   const fetchData = async () => {
@@ -61,6 +63,7 @@ export default function AdminDashboard() {
 
     if (data.students) {
       setStudents(data.students);
+
       if (activeTab === 'fees') {
         const map: any = {};
         data.students.forEach((s: Student) => {
@@ -77,19 +80,30 @@ export default function AdminDashboard() {
 
   /* ================= PERFORMANCE ================= */
   const performanceStats = useMemo(() => {
-    const marks = Number(perf.marks);
-    const max = Number(perf.max_marks);
+  const marks = Number(perf.marks);
+  const max = Number(perf.max_marks);
 
-    if (!marks || !max || max <= 0 || marks > max) return null;
+  if (!marks || !max || max <= 0 || marks > max) return null;
 
-    const percentage = Number(((marks / max) * 100).toFixed(1));
-    let grade = 'C';
-    if (percentage >= 90) grade = 'A+';
-    else if (percentage >= 75) grade = 'A';
-    else if (percentage >= 60) grade = 'B';
+  const percentage = Math.round((marks / max) * 100);
 
-    return { percentage, grade };
-  }, [perf.marks, perf.max_marks]);
+  let grade = 'C';
+  let color = 'bg-yellow-500';
+
+  if (percentage >= 90) {
+    grade = 'A+';
+    color = 'bg-green-500';
+  } else if (percentage >= 75) {
+    grade = 'A';
+    color = 'bg-blue-500';
+  } else if (percentage >= 60) {
+    grade = 'B';
+    color = 'bg-purple-500';
+  }
+
+  return { percentage, grade, color };
+}, [perf.marks, perf.max_marks]);
+
 
   /* ================= ACTIONS ================= */
   const saveFees = async (student_id: number) => {
@@ -127,8 +141,7 @@ export default function AdminDashboard() {
   };
 
   const logout = () => {
-    localStorage.removeItem('admin');
-    localStorage.removeItem('token');
+    localStorage.clear();
     router.replace('/admin/login');
   };
 
@@ -143,14 +156,16 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 p-4 md:p-10">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-8">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex justify-between items-center mb-8"
+      >
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800">
             Admin Dashboard
           </h1>
-          <p className="text-gray-500">
-            Vikram Classes • Chemistry Management
-          </p>
+          <p className="text-gray-500">Vikram Classes • Control Panel</p>
         </div>
 
         <button
@@ -158,12 +173,11 @@ export default function AdminDashboard() {
           className="flex items-center gap-2 px-4 py-2 rounded-xl
           bg-red-500/10 text-red-600 hover:bg-red-500/20 font-semibold"
         >
-          <LogOut size={18} />
-          <span className="hidden sm:block">Logout</span>
+          <LogOut size={18} /> Logout
         </button>
-      </div>
+      </motion.div>
 
-      {/* MOBILE TAB MENU */}
+      {/* MOBILE MENU */}
       <div className="md:hidden mb-6">
         <button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -172,14 +186,21 @@ export default function AdminDashboard() {
           <Menu size={18} /> Menu
         </button>
 
-        {menuOpen && (
-          <div className="mt-3 space-y-2">
-            <Tab icon={<Users />} label="Students" tab="students" />
-            <Tab icon={<IndianRupee />} label="Fees" tab="fees" />
-            <Tab icon={<BookOpen />} label="Notes" tab="notes" />
-            <Tab icon={<BarChart3 />} label="Performance" tab="performance" />
-          </div>
-        )}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="mt-3 space-y-2"
+            >
+              <Tab icon={<Users />} label="Students" tab="students" />
+              <Tab icon={<IndianRupee />} label="Fees" tab="fees" />
+              <Tab icon={<BookOpen />} label="Notes" tab="notes" />
+              <Tab icon={<BarChart3 />} label="Performance" tab="performance" />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* DESKTOP TABS */}
@@ -190,7 +211,7 @@ export default function AdminDashboard() {
         <Tab icon={<BarChart3 />} label="Performance" tab="performance" />
       </div>
 
-      {/* MONTH */}
+      {/* MONTH PICKER */}
       {activeTab === 'fees' && (
         <input
           type="month"
@@ -200,144 +221,286 @@ export default function AdminDashboard() {
         />
       )}
 
-      {/* STUDENTS */}
-      {activeTab === 'students' && (
-        <GlassCard>
-          <div className="flex gap-3 mb-4">
-            <Search size={18} />
-            <input
-              placeholder="Search student..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="border rounded-xl px-4 py-2 w-full"
-            />
-          </div>
+      {/* CONTENT */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.35 }}
+        >
 
-          <div className="overflow-x-auto">
-            <Table headers={['Name', 'Class', 'Email', 'Total Fees']}>
-              {filteredStudents.map(s => (
-                <tr key={s.id}>
-                  <Cell>{s.name}</Cell>
-                  <Cell>{s.student_class}</Cell>
-                  <Cell className="hidden sm:table-cell">{s.email ?? '-'}</Cell>
-                  <Cell className="font-bold text-green-600">
-                    ₹{s.total_paid ?? 0}
-                  </Cell>
-                </tr>
-              ))}
-            </Table>
-          </div>
-        </GlassCard>
-      )}
+          {/* STUDENTS */}
+          {activeTab === 'students' && (
+            <GlassCard>
+              {activeTab === 'students' && (
+  <div className="max-w-6xl mx-auto">
 
-      {/* FEES */}
-      {activeTab === 'fees' && (
-        <GlassCard>
-          <div className="overflow-x-auto">
-            <Table headers={['Name', 'Class', 'Amount', 'Action']}>
-              {students.map(s => (
-                <tr key={s.id}>
-                  <Cell>{s.name}</Cell>
-                  <Cell>{s.student_class}</Cell>
-                  <Cell>
-                    <input
-                      type="number"
-                      className="border rounded-lg px-3 py-1 w-24"
-                      value={amounts[s.id] ?? ''}
-                      onChange={e =>
-                        setAmounts({ ...amounts, [s.id]: Number(e.target.value) })
-                      }
-                    />
-                  </Cell>
-                  <Cell>
-                    <button
-                      onClick={() => saveFees(s.id)}
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-1 rounded-lg"
-                    >
-                      Save
-                    </button>
-                  </Cell>
-                </tr>
-              ))}
-            </Table>
-          </div>
-        </GlassCard>
-      )}
+    {/* HEADER */}
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div>
+        <h2 className="text-3xl font-extrabold text-indigo-600">
+          Students Management
+        </h2>
+        <p className="text-gray-500 text-sm">
+          View & manage enrolled students
+        </p>
+      </div>
 
-      {/* NOTES */}
-      {activeTab === 'notes' && (
-        <GlassCard className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Study Notes</h2>
-          <button
-            onClick={() => router.push('/admin/notes')}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-3 rounded-xl"
-          >
-            Upload Notes
-          </button>
-        </GlassCard>
-      )}
+      {/* SEARCH */}
+      <div className="relative w-full md:w-80">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search by name, class, email"
+          className="w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-400"
+        />
+      </div>
+    </div>
 
-      {/* PERFORMANCE */}
-      {activeTab === 'performance' && (
-        <GlassCard className="max-w-xl">
-          <h2 className="text-2xl font-bold mb-6">Student Performance</h2>
+    {/* DESKTOP TABLE */}
+    <div className="hidden md:block bg-white rounded-3xl shadow-xl overflow-hidden">
+      <table className="w-full text-sm">
+        <thead className="bg-indigo-50 text-gray-600">
+          <tr>
+            <th className="p-4 text-left">Student</th>
+            <th className="p-4 text-left">Class</th>
+            <th className="p-4 text-left">Email</th>
+            <th className="p-4 text-left">Total Fees</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredStudents.map(s => (
+            <tr key={s.id} className="border-b hover:bg-indigo-50/40">
+              <td className="p-4 font-semibold">{s.name}</td>
+              <td className="p-4">Class {s.student_class}</td>
+              <td className="p-4 text-gray-600">{s.email ?? '-'}</td>
+              <td className="p-4 font-bold text-green-600">
+                ₹{s.total_paid ?? 0}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
 
-          <select
-            className="border rounded-lg p-3 w-full mb-4"
-            value={perf.student_id}
-            onChange={e => setPerf({ ...perf, student_id: e.target.value })}
-          >
-            <option value="">Select Student</option>
-            {students.map(s => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-
-          <input
-            className="border rounded-lg p-3 w-full mb-4"
-            placeholder="Test Name"
-            value={perf.test_name}
-            onChange={e => setPerf({ ...perf, test_name: e.target.value })}
-          />
-
-          <div className="flex gap-3 mb-4">
-            <input
-              type="number"
-              className="border rounded-lg p-3 w-full"
-              placeholder="Marks"
-              value={perf.marks}
-              onChange={e => setPerf({ ...perf, marks: e.target.value })}
-            />
-            <input
-              type="number"
-              className="border rounded-lg p-3 w-full"
-              placeholder="Max Marks"
-              value={perf.max_marks}
-              onChange={e => setPerf({ ...perf, max_marks: e.target.value })}
-            />
-          </div>
-
-          {performanceStats && (
-            <div className="mb-4 p-4 rounded-xl bg-indigo-50 text-center font-semibold">
-              {performanceStats.percentage}% • Grade {performanceStats.grade}
+    {/* MOBILE CARDS */}
+    <div className="grid gap-4 md:hidden">
+      {filteredStudents.map(s => (
+        <div
+          key={s.id}
+          className="bg-white rounded-2xl shadow-lg p-5"
+        >
+          <div className="flex justify-between items-start mb-3">
+            <div>
+              <h3 className="font-bold text-lg">{s.name}</h3>
+              <p className="text-sm text-gray-500">
+                Class {s.student_class}
+              </p>
             </div>
+
+            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+              ₹{s.total_paid ?? 0}
+            </span>
+          </div>
+
+          <p className="text-sm text-gray-600 break-all">
+            {s.email ?? 'No email provided'}
+          </p>
+        </div>
+      ))}
+    </div>
+
+    {/* EMPTY STATE */}
+    {filteredStudents.length === 0 && (
+      <div className="text-center text-gray-500 mt-10">
+        No students found
+      </div>
+    )}
+  </div>
+)}
+
+            </GlassCard>
           )}
 
-          <textarea
-            className="border rounded-lg p-3 w-full mb-4"
-            placeholder="Remarks"
-            value={perf.remarks}
-            onChange={e => setPerf({ ...perf, remarks: e.target.value })}
-          />
+          {/* FEES */}
+          {activeTab === 'fees' && (
+            <GlassCard>
+              <Table headers={['Name', 'Class', 'Amount', 'Action']}>
+                {students.map(s => (
+                  <tr key={s.id}>
+                    <Cell>{s.name}</Cell>
+                    <Cell>{s.student_class}</Cell>
+                    <Cell>
+                      <input
+                        type="number"
+                        className="border rounded-lg px-3 py-1 w-24"
+                        value={amounts[s.id] ?? ''}
+                        onChange={e =>
+                          setAmounts({ ...amounts, [s.id]: Number(e.target.value) })
+                        }
+                      />
+                    </Cell>
+                    <Cell>
+                      <button
+                        onClick={() => saveFees(s.id)}
+                        className="bg-gradient-to-r from-purple-600 to-indigo-600
+                        text-white px-4 py-1 rounded-lg"
+                      >
+                        Save
+                      </button>
+                    </Cell>
+                  </tr>
+                ))}
+              </Table>
+            </GlassCard>
+          )}
 
-          <button
-            onClick={savePerformance}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-xl font-semibold"
-          >
-            Save Performance
-          </button>
-        </GlassCard>
-      )}
+          {/* NOTES */}
+          {activeTab === 'notes' && (
+            <GlassCard className="text-center">
+              <h2 className="text-2xl font-bold mb-4">Study Notes</h2>
+              <button
+                onClick={() => router.push('/admin/notes')}
+                className="bg-gradient-to-r from-purple-600 to-indigo-600
+                text-white px-8 py-3 rounded-xl font-semibold hover:scale-105 transition"
+              >
+                Upload Notes
+              </button>
+            </GlassCard>
+          )}
+
+          {/* PERFORMANCE */}
+          {activeTab === 'performance' && (
+  <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-6 md:p-8">
+
+    {/* HEADER */}
+    <div className="text-center mb-8">
+      <h2 className="text-3xl font-extrabold text-indigo-600">
+        Student Performance Entry
+      </h2>
+      <p className="text-gray-500 text-sm">
+        Exam results & academic performance
+      </p>
+    </div>
+
+    {/* STUDENT */}
+    <label className="block mb-2 font-semibold">Student</label>
+    <select
+      value={perf.student_id}
+      onChange={e => setPerf({ ...perf, student_id: e.target.value })}
+      className="w-full mb-4 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-400"
+    >
+      <option value="">Select Student</option>
+      {students.map(s => (
+        <option key={s.id} value={s.id}>
+          {s.name} — Class {s.student_class}
+        </option>
+      ))}
+    </select>
+
+    {/* EXAM INFO */}
+    <div className="grid md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label className="block mb-2 font-semibold">Exam Name</label>
+        <input
+          placeholder="Unit Test / Mid Term / Final"
+          value={perf.test_name}
+          onChange={e => setPerf({ ...perf, test_name: e.target.value })}
+          className="w-full px-4 py-3 border rounded-xl"
+        />
+      </div>
+
+      <div>
+        <label className="block mb-2 font-semibold">Exam Type</label>
+        <select
+          className="w-full px-4 py-3 border rounded-xl"
+          onChange={e => setPerf({ ...perf, remarks: e.target.value })}
+        >
+          <option value="">Written</option>
+          <option value="Practical">Practical</option>
+          <option value="Online">Online</option>
+        </select>
+      </div>
+    </div>
+
+    {/* MARKS */}
+    <div className="grid grid-cols-2 gap-4 mb-4">
+      <div>
+        <label className="block mb-2 font-semibold">Marks Obtained</label>
+        <input
+          type="number"
+          value={perf.marks}
+          onChange={e => setPerf({ ...perf, marks: e.target.value })}
+          className="w-full px-4 py-3 border rounded-xl"
+        />
+      </div>
+
+      <div>
+        <label className="block mb-2 font-semibold">Maximum Marks</label>
+        <input
+          type="number"
+          value={perf.max_marks}
+          onChange={e => setPerf({ ...perf, max_marks: e.target.value })}
+          className="w-full px-4 py-3 border rounded-xl"
+        />
+      </div>
+    </div>
+
+    {/* AUTO RESULT */}
+    {performanceStats && (
+      <div className="grid grid-cols-3 gap-3 text-center mb-6">
+        <div className="bg-indigo-50 rounded-xl p-4">
+          <p className="text-sm text-gray-500">Percentage</p>
+          <p className="text-2xl font-bold text-indigo-600">
+            {performanceStats.percentage}%
+          </p>
+        </div>
+        <div className="bg-green-50 rounded-xl p-4">
+          <p className="text-sm text-gray-500">Grade</p>
+          <p className="text-2xl font-bold text-green-600">
+            {performanceStats.grade}
+          </p>
+        </div>
+        <div className={`rounded-xl p-4 ${
+          performanceStats.percentage >= 35
+            ? 'bg-green-100 text-green-700'
+            : 'bg-red-100 text-red-700'
+        }`}>
+          <p className="text-sm">Status</p>
+          <p className="text-2xl font-bold">
+            {performanceStats.percentage >= 35 ? 'PASS' : 'FAIL'}
+          </p>
+        </div>
+      </div>
+    )}
+
+    {/* TEACHER REMARK */}
+    <label className="block mb-2 font-semibold">Teacher Remark</label>
+    <textarea
+      rows={3}
+      placeholder="Needs improvement / Excellent performance"
+      value={perf.remarks}
+      onChange={e => setPerf({ ...perf, remarks: e.target.value })}
+      className="w-full mb-6 px-4 py-3 border rounded-xl resize-none"
+    />
+
+    {/* SAVE */}
+    <button
+      onClick={savePerformance}
+      className="w-full bg-gradient-to-r from-purple-600 to-indigo-600
+      text-white py-3 rounded-xl font-bold text-lg hover:opacity-90"
+    >
+      Save Result
+    </button>
+  </div>
+)}
+
+
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 
@@ -364,9 +527,13 @@ export default function AdminDashboard() {
 /* ================= COMPONENTS ================= */
 
 const GlassCard = ({ children, className = '' }: any) => (
-  <div className={`bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 ${className}`}>
+  <motion.div
+    initial={{ scale: 0.97, opacity: 0 }}
+    animate={{ scale: 1, opacity: 1 }}
+    className={`bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 ${className}`}
+  >
     {children}
-  </div>
+  </motion.div>
 );
 
 const Table = ({ headers, children }: any) => (
