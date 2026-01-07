@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/login', '/register', '/admin'],
+        disallow: ['/login', '/register'],
       },
     ],
     sitemap: 'https://vikramclasses.com/sitemap.xml',
