@@ -1,7 +1,9 @@
 'use client';
+import { useEffect } from "react";
+import Lenis from "@studio-freight/lenis";
+import { useRouter } from "next/navigation";
 import { motion , useMotionValue} from "framer-motion";
-import Head from 'next/head';
-import { useRouter } from 'next/navigation';
+import Head from 'next/head'
 import {
   BookOpen,
   BarChart3,
@@ -29,8 +31,29 @@ function GhostButton({ label, onClick }: { label: string; onClick: () => void })
   );
 }
 
+
 export default function HomePage() {
   const router = useRouter();
+
+useEffect(() => {
+  const lenis = new Lenis({
+    lerp: 0.08,
+    wheelMultiplier: 1,
+    touchMultiplier: 1,
+  });
+
+  function raf(time: number) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+
+  requestAnimationFrame(raf);
+
+  return () => {
+    lenis.destroy();
+  };
+}, []);
+
 
   return (
     <>
@@ -100,7 +123,9 @@ export default function HomePage() {
             transition-transform duration-[3000ms] motion-safe:animate-[pulse_8s_ease-in-out_infinite]"
             style={{ backgroundImage: "url('/chemistry-bg.jpg')" }}
           />
+          
           <div className="absolute inset-0 bg-black/60" />
+          
 
           {/* TOP RIGHT BUTTONS */}
           <div className="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex gap-3">
@@ -116,7 +141,9 @@ export default function HomePage() {
                 document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
               }
             />
+            
           </div>
+          
 
           {/* CONTENT */}
           <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 text-center
@@ -169,21 +196,31 @@ export default function HomePage() {
 </div>
 
 
+            <motion.h1
+  initial={{ backgroundPosition: "0% 50%" }}
+  animate={{ backgroundPosition: "100% 50%" }}
+  transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+  className="text-3xl sm:text-4xl md:text-6xl font-extrabold mb-4
+  bg-gradient-to-r from-cyan-400 via-indigo-400 to-violet-500
+  bg-[length:200%_200%] bg-clip-text text-transparent"
+>
+  Vikram Classes
+</motion.h1>
 
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold mb-4">
-              <span className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
-                Vikram Classes
-              </span>
-            </h1>
 
-            <p className="max-w-3xl mx-auto text-gray-300 mb-10 text-sm sm:text-base">
-              Class 11 & 12 ke students ke liye
-<span className="text-cyan-300">Chemistry mastery program</span> —
-jahan concepts bante hain strong,
-confidence aata hai natural
-aur results follow karte hain consistently.
+            <motion.p
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.3, duration: 0.6 }}
+  className="max-w-3xl mx-auto text-gray-300 mb-10 text-sm sm:text-base"
+>
+Vikram Classes is a dedicated Chemistry coaching institute for Class 11 and
+Class 12 students, focused on building strong academic fundamentals and
+exam-oriented preparation.
+</motion.p>
 
-            </p>
+
+
 
             {/* CTA */}
             <div className="flex flex-col sm:flex-row justify-center gap-6">
@@ -206,7 +243,27 @@ aur results follow karte hain consistently.
                 gradient="from-violet-500 to-pink-600"
               />
             </div>
+            <motion.p
+  initial={{ opacity: 0, y: 10 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.8 }}
+  className="mt-6 text-sm text-gray-300"
+>
+  Trusted by <span className="text-cyan-400 font-semibold">100+ Students</span> •
+  <span className="text-indigo-400 font-semibold"> 10+ Years Experience</span> •
+  Board Focused Results
+</motion.p><a
+  href="https://wa.me/919557943342"
+  className="fixed bottom-6 right-6 z-50
+  bg-green-500 text-white px-5 py-3 rounded-full shadow-lg
+  hover:scale-110 transition"
+>
+  WhatsApp Us
+</a>
+
+
           </div>
+          
         </section>
 
 {/* ================= FEATURES ================= */}
@@ -220,7 +277,7 @@ aur results follow karte hain consistently.
       className="text-4xl md:text-5xl font-extrabold mb-5"
     >
       <span className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
-        Why Trust Vikram Classes
+        Why Students Trust Vikram Classes
       </span>
     </motion.h2>
 
@@ -231,8 +288,9 @@ aur results follow karte hain consistently.
       transition={{ delay: 0.2 }}
       className="text-gray-400 max-w-2xl mx-auto"
     >
-      Result-oriented coaching jahan concepts clear hote hain,
-      confidence build hota hai aur performance improve hoti hai.
+      At Vikram Classes, our teaching approach focuses on concept clarity,
+consistent practice, and continuous performance evaluation.
+Every student receives structured guidance and academic support.
     </motion.p>
   </div>
 
@@ -265,6 +323,30 @@ aur results follow karte hain consistently.
     />
   </div>
 </section>
+<section className="py-28 px-6 bg-black">
+  <motion.div
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.7 }}
+    className="max-w-4xl mx-auto text-gray-400 text-sm leading-relaxed"
+  >
+    <h2 className="text-3xl font-extrabold text-white mb-6">
+      Best Chemistry Coaching for Class 11 and Class 12
+    </h2>
+
+    <p className="mb-5">
+      Vikram Classes offers structured Chemistry coaching covering Physical,
+      Organic, and Inorganic Chemistry. Each chapter is taught using NCERT-based
+      explanations, numerical practice, and exam-focused problem solving.
+    </p>
+
+    <p>
+      Our teaching methodology helps students build long-term understanding,
+      improve accuracy, and perform confidently in board examinations.
+    </p>
+  </motion.div>
+</section>
 
 
         {/* ================= TOPPERS ================= */}
@@ -296,8 +378,8 @@ aur results follow karte hain consistently.
       transition={{ delay: 0.2 }}
       className="text-center text-gray-400 max-w-2xl mx-auto mb-20"
     >
-      Real students. Real results. Consistent excellence in Class 11 & 12
-      Chemistry.
+      Our students consistently achieve outstanding results in Class 11 and 12 Chemistry examinations. Their success reflects disciplined
+preparation and concept-driven learning.
     </motion.p>
 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
@@ -363,7 +445,9 @@ aur results follow karte hain consistently.
       transition={{ delay: 0.2 }}
       className="text-center text-gray-400 max-w-2xl mx-auto mb-20"
     >
-      Personal guidance, clear communication & dedicated academic support.
+      For admissions, academic guidance, and course details,
+students and parents are encouraged to contact us directly.
+We ensure transparent communication and personal mentoring.
     </motion.p>
 
     <div className="grid md:grid-cols-2 gap-12">
@@ -390,7 +474,12 @@ aur results follow karte hain consistently.
 
 
         <footer className="py-6 text-center text-gray-400 text-sm border-t border-white/10">
-          © {new Date().getFullYear()} Vikram Classes • Building Chemistry, Building Futures
+        <p className="max-w-3xl mx-auto mb-3">
+    Vikram Classes is a trusted Chemistry coaching institute for Class 11 and
+    Class 12 students, known for conceptual clarity, academic discipline,
+    and consistent results.
+  </p>
+          © {new Date().getFullYear()} Vikram Classes • Excellence in Chemistry Education
         </footer>
       </div>
     </>
