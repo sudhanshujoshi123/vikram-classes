@@ -220,7 +220,7 @@ aur results follow karte hain consistently.
       className="text-4xl md:text-5xl font-extrabold mb-5"
     >
       <span className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
-        Why Students Trust Vikram Classes
+        Why Trust Vikram Classes
       </span>
     </motion.h2>
 
