@@ -394,7 +394,7 @@ preparation and concept-driven learning.
         img="/toppers/komal.png"
         name="Komal Bhatt"
         year="2024"
-        marks="95/100"
+        marks="95 out of 100"
         delay={0.1}
       />
       <TopperCard

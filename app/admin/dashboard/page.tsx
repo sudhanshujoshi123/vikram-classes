@@ -36,7 +36,7 @@ export default function AdminDashboard() {
   /* ===== STATES ===== */
   const [students, setStudents] = useState<Student[]>([]);
   const [activeTab, setActiveTab] =
-    useState<'students' | 'fees' | 'notes' | 'performance'>('students');
+  useState<'students' | 'fees' | 'notes' | 'pyq' | 'practical' | 'performance'>('students');
 
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
   const [amounts, setAmounts] = useState<{ [key: number]: number }>({});
@@ -195,9 +195,12 @@ export default function AdminDashboard() {
               className="mt-3 space-y-2"
             >
               <Tab icon={<Users />} label="Students" tab="students" />
-              <Tab icon={<IndianRupee />} label="Fees" tab="fees" />
-              <Tab icon={<BookOpen />} label="Notes" tab="notes" />
-              <Tab icon={<BarChart3 />} label="Performance" tab="performance" />
+<Tab icon={<IndianRupee />} label="Fees" tab="fees" />
+<Tab icon={<BookOpen />} label="Notes" tab="notes" />
+<Tab icon={<BookOpen />} label="PYQ" tab="pyq" />
+<Tab icon={<BookOpen />} label="Practical" tab="practical" />
+<Tab icon={<BarChart3 />} label="Performance" tab="performance" />
+
             </motion.div>
           )}
         </AnimatePresence>
@@ -206,9 +209,12 @@ export default function AdminDashboard() {
       {/* DESKTOP TABS */}
       <div className="hidden md:flex gap-4 mb-8">
         <Tab icon={<Users />} label="Students" tab="students" />
-        <Tab icon={<IndianRupee />} label="Fees" tab="fees" />
-        <Tab icon={<BookOpen />} label="Notes" tab="notes" />
-        <Tab icon={<BarChart3 />} label="Performance" tab="performance" />
+<Tab icon={<IndianRupee />} label="Fees" tab="fees" />
+<Tab icon={<BookOpen />} label="Notes" tab="notes" />
+<Tab icon={<BookOpen />} label="PYQ" tab="pyq" />
+<Tab icon={<BookOpen />} label="Practical" tab="practical" />
+<Tab icon={<BarChart3 />} label="Performance" tab="performance" />
+
       </div>
 
       {/* MONTH PICKER */}
@@ -483,6 +489,35 @@ export default function AdminDashboard() {
               </button>
             </GlassCard>
           )}
+          {/* PYQ */}
+{activeTab === 'pyq' && (
+  <GlassCard className="text-center">
+    <h2 className="text-2xl font-bold mb-4">PYQ Upload</h2>
+
+    <button
+      onClick={() => router.push('/admin/pyq')}
+      className="bg-gradient-to-r from-indigo-600 to-purple-600
+      text-white px-8 py-3 rounded-xl font-semibold"
+    >
+      Upload PYQ PDF
+    </button>
+  </GlassCard>
+)}
+{/* PRACTICAL */}
+{activeTab === 'practical' && (
+  <GlassCard className="text-center">
+    <h2 className="text-2xl font-bold mb-4">Practical Upload</h2>
+
+    <button
+      onClick={() => router.push('/admin/practical')}
+      className="bg-gradient-to-r from-indigo-600 to-purple-600
+      text-white px-8 py-3 rounded-xl font-semibold"
+    >
+      Upload Practical PDF
+    </button>
+  </GlassCard>
+)}
+
 
           {/* PERFORMANCE */}
           {activeTab === 'performance' && (

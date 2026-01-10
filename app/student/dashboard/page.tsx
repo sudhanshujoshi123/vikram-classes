@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 /* ================= TYPES ================= */
-type TabType = 'notes' | 'fees' | 'performance';
+type TabType = 'notes' | 'pyq' | 'practical' | 'fees' | 'performance';
 
 interface Note {
   medium: string;
@@ -21,6 +21,14 @@ interface Note {
   chapter_name: string;
   pdf_url: string;
 }
+interface PYQ {
+  pdf_url: string;
+}
+
+interface Practical {
+  pdf_url: string;
+}
+
 
 interface MonthlyFee {
   month: string;
@@ -39,6 +47,22 @@ export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('notes');
 
   const [notes, setNotes] = useState<Note[]>([]);
+  const [pyqs, setPyqs] = useState<any[]>([]);
+const [loadingPyq, setLoadingPyq] = useState(false);
+
+const [pyqMedium, setPyqMedium] = useState('');
+const [pyqClass, setPyqClass] = useState('');
+const [pyqSubject, setPyqSubject] = useState('');
+
+const [practicals, setPracticals] = useState<any[]>([]);
+const [loadingPractical, setLoadingPractical] = useState(false);
+
+const [practicalMedium, setPracticalMedium] = useState('');
+const [practicalClass, setPracticalClass] = useState('');
+const [practicalSubject, setPracticalSubject] = useState('');
+
+
+
   const [medium, setMedium] = useState('');
   const [search, setSearch] = useState('');
   const [classNum, setClassNum] = useState('');
@@ -87,6 +111,60 @@ export default function StudentDashboard() {
 
     fetchNotes();
   }, [medium, classNum, subject]);
+  /* ================= PYQ ================= */
+useEffect(() => {
+  if (activeTab !== 'pyq') return;
+
+  if (!pyqMedium || !pyqClass || !pyqSubject) {
+    setPyqs([]);
+    return;
+  }
+
+  const fetchPyq = async () => {
+    setLoadingPyq(true);
+    try {
+      const res = await fetch(
+        `/api/student/pyq?medium=${pyqMedium}&class=${pyqClass}&subject=${pyqSubject}`
+      );
+      const data = await res.json();
+      setPyqs(data.pyq || []);
+    } catch {
+      setPyqs([]);
+    } finally {
+      setLoadingPyq(false);
+    }
+  };
+
+  fetchPyq();
+}, [activeTab, pyqMedium, pyqClass, pyqSubject]);
+
+
+/* ================= PRACTICAL ================= */
+useEffect(() => {
+  if (activeTab !== 'practical') return;
+
+  if (!practicalMedium || !practicalClass || !practicalSubject) {
+    setPracticals([]);
+    return;
+  }
+
+  const fetchPracticals = async () => {
+    setLoadingPractical(true);
+    try {
+      const res = await fetch(
+        `/api/student/practical?medium=${practicalMedium}&class=${practicalClass}&subject=${practicalSubject}`
+      );
+      const data = await res.json();
+      setPracticals(data.practicals || []);
+    } catch {
+      setPracticals([]);
+    } finally {
+      setLoadingPractical(false);
+    }
+  };
+
+  fetchPracticals();
+}, [activeTab, practicalMedium, practicalClass, practicalSubject]);
 
   /* ================= FEES ================= */
   useEffect(() => {
@@ -151,6 +229,8 @@ export default function StudentDashboard() {
         {/* TABS */}
         <div className="flex gap-3 mb-6 overflow-x-auto">
           <Tab icon={<BookOpen size={18} />} label="Study Notes" active={activeTab === 'notes'} onClick={() => setActiveTab('notes')} />
+          <Tab icon={<FileText size={18} />} label="PYQ" active={activeTab === 'pyq'} onClick={() => setActiveTab('pyq')} />
+          <Tab icon={<FileText size={18} />} label="Practical" active={activeTab === 'practical'} onClick={() => setActiveTab('practical')} />
           <Tab icon={<IndianRupee size={18} />} label="Fees & Payments" active={activeTab === 'fees'} onClick={() => setActiveTab('fees')} />
           <Tab icon={<BarChart3 size={18} />} label="Acadmic Performance" active={activeTab === 'performance'} onClick={() => setActiveTab('performance')} />
         </div>
@@ -240,6 +320,112 @@ Please select Medium, Class & Subject to view notes.
     </div>
   </>
 )}
+{activeTab === 'pyq' && (
+  <>
+    <h2 className="text-xl font-extrabold mb-6">
+      📚 Previous Year Question Papers
+    </h2>
+
+    {/* FILTERS */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <FilterSelect label="Medium" value={pyqMedium} onChange={setPyqMedium} options={['Hindi', 'English']} />
+      <FilterSelect label="Class" value={pyqClass} onChange={setPyqClass} options={['11', '12']} />
+      <FilterSelect label="Subject" value={pyqSubject} onChange={setPyqSubject} options={['Chemistry', 'Physics', 'Biology']} />
+    </div>
+
+    {loadingPyq && (
+      <p className="text-center text-gray-500">Loading PYQ...</p>
+    )}
+
+    {!loadingPyq && pyqs.length === 0 && (
+      <p className="text-center text-gray-400">
+        No PYQ found 📭
+      </p>
+    )}
+
+    <div className="grid md:grid-cols-2 gap-5">
+      {pyqs.map((p, i) => (
+        <div key={i} className="bg-indigo-50 border rounded-2xl p-5">
+          <p className="font-bold mb-4">
+            {p.subject} • Class {p.class}
+          </p>
+
+          <button
+            onClick={() => setOpenPdf(p.pdf_url)}
+            className="w-full bg-indigo-600 text-white py-2 rounded-xl"
+          >
+            📄 Open PYQ PDF
+          </button>
+        </div>
+      ))}
+    </div>
+  </>
+)}
+
+
+{activeTab === 'practical' && (
+  <>
+    <h2 className="text-xl font-extrabold mb-6">
+      🧪 Practical PDFs
+    </h2>
+
+    {/* FILTERS */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <FilterSelect
+        label="Medium"
+        value={practicalMedium}
+        onChange={setPracticalMedium}
+        options={['Hindi', 'English']}
+      />
+      <FilterSelect
+        label="Class"
+        value={practicalClass}
+        onChange={setPracticalClass}
+        options={['11', '12']}
+      />
+      <FilterSelect
+        label="Subject"
+        value={practicalSubject}
+        onChange={setPracticalSubject}
+        options={['Physics', 'Chemistry', 'Biology']}
+      />
+    </div>
+
+    {loadingPractical && (
+      <p className="text-center text-gray-500">
+        Loading practicals...
+      </p>
+    )}
+
+    {!loadingPractical && practicals.length === 0 && (
+      <p className="text-center text-gray-400">
+        No practical found 📭
+      </p>
+    )}
+
+    <div className="grid md:grid-cols-2 gap-5">
+      {practicals.map((p, i) => (
+        <div
+          key={i}
+          className="bg-gradient-to-br from-indigo-50 to-purple-50 border rounded-2xl p-5 shadow-sm"
+        >
+          <p className="font-bold mb-4">
+            {p.subject} • Class {p.class}
+          </p>
+
+          <button
+            onClick={() => setOpenPdf(p.pdf_url)}
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-xl"
+          >
+            📄 Open Practical PDF
+          </button>
+        </div>
+      ))}
+    </div>
+  </>
+)}
+
+
 
           {/* ================= FEES ================= */}
          {activeTab === 'fees' && (
