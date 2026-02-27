@@ -461,7 +461,7 @@ We ensure transparent communication and personal mentoring.
 
       <ContactCard
         role="System Architect & Developer"
-        name="Mr. Sudhanshu Joshi"
+        name="Mr. Chandresh Tewari"
         phone="7900431779"
         emails={[
           "sudhanshu24r@gmail.com",
