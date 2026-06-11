@@ -115,22 +115,6 @@ export default function RootLayout({
                     once the upgrade is complete.
                   </p>
                 </div>
-
-                {/* Contact Section */}
-                <div className="pt-4 border-t border-slate-800">
-                  <p className="text-slate-400 text-sm mb-3">
-                    For urgent inquiries or support regarding pending transactions, please contact our technical team:
-                  </p>
-                  <a 
-                    href="mailto:dmp@gmail.com" 
-                    className="inline-flex items-center justify-center w-full md:w-auto bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-medium transition-colors border border-slate-700"
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    support.dmp@gmail.com
-                  </a>
-                </div>
               </div>
             </div>
 
