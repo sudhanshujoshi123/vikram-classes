@@ -1,209 +1,333 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  UploadCloud,
-  BookOpen,
-  FileText,
-  Layers,
-  GraduationCap,
-  Book,
-  CheckCircle,
-} from "lucide-react";
+  UploadCloud, BookOpen, FileText, Layers,
+  GraduationCap, Book, CheckCircle2, X,
+  ArrowLeft, Atom
+} from 'lucide-react';
 
 export default function AdminNotesPage() {
-  const [medium, setMedium] = useState("");
-  const [classNum, setClassNum] = useState("");
-  const [subject, setSubject] = useState("");
-  const [chapter, setChapter] = useState("");
-  const [pdf, setPdf] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const [medium, setMedium]     = useState('');
+  const [classNum, setClassNum] = useState('');
+  const [subject, setSubject]   = useState('');
+  const [chapter, setChapter]   = useState('');
+  const [pdf, setPdf]           = useState<File | null>(null);
+  const [loading, setLoading]   = useState(false);
+  const [success, setSuccess]   = useState(false);
+  const [error, setError]       = useState('');
 
   const submit = async () => {
     if (!medium || !classNum || !subject || !chapter || !pdf) {
-      alert("❌ Saari details bharna zaroori hai");
+      setError('Please fill all fields and upload a PDF.');
       return;
     }
-
-    const fd = new FormData();
-    fd.append("medium", medium);
-    fd.append("class", classNum);
-    fd.append("subject", subject);
-    fd.append("chapter", chapter);
-    fd.append("pdf", pdf);
-
+    setError('');
     setLoading(true);
 
+    const fd = new FormData();
+    fd.append('medium', medium);
+    fd.append('class', classNum);
+    fd.append('subject', subject);
+    fd.append('chapter', chapter);
+    fd.append('pdf', pdf);
+
     try {
-      const res = await fetch("/api/admin/notes/upload", {
-        method: "POST",
-        body: fd,
-      });
-
+      const res = await fetch('/api/admin/notes/upload', { method: 'POST', body: fd });
       if (!res.ok) throw new Error();
-
-      alert("✅ Notes uploaded successfully");
-
-      setMedium("");
-      setClassNum("");
-      setSubject("");
-      setChapter("");
-      setPdf(null);
+      setSuccess(true);
+      setMedium(''); setClassNum(''); setSubject(''); setChapter(''); setPdf(null);
+      setTimeout(() => setSuccess(false), 3000);
     } catch {
-      alert("❌ Upload failed");
+      setError('Upload failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-sky-100 to-purple-100 flex items-center justify-center px-4 py-10">
+  const labelStyle: React.CSSProperties = {
+    display: 'block', color: '#6b7280', fontSize: 11,
+    fontWeight: 600, letterSpacing: '0.07em',
+    textTransform: 'uppercase', marginBottom: 6,
+  };
 
-      <div className="w-full max-w-2xl bg-white rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden">
+  const inputBase: React.CSSProperties = {
+    width: '100%', paddingLeft: 42, paddingRight: 14,
+    paddingTop: 11, paddingBottom: 11,
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 12, color: '#e5e7eb', fontSize: 14,
+    outline: 'none', boxSizing: 'border-box',
+    transition: 'border-color 0.2s', appearance: 'none',
+  };
+
+  const fields = [
+    { label: 'Medium', icon: <Layers size={16} />, value: medium, onChange: setMedium, options: ['Hindi', 'English'], prefix: '' },
+    { label: 'Class', icon: <GraduationCap size={16} />, value: classNum, onChange: setClassNum, options: ['11', '12'], prefix: 'Class ' },
+    { label: 'Subject', icon: <Book size={16} />, value: subject, onChange: setSubject, options: ['Physics', 'Chemistry', 'Maths', 'Biology'], prefix: '' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4 py-10 relative overflow-hidden">
+
+      {/* GLOW ORBS */}
+      <div style={{ position:'absolute', top:'10%', left:'5%', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)', filter:'blur(50px)', pointerEvents:'none' }} />
+      <div style={{ position:'absolute', bottom:'10%', right:'5%', width:350, height:350, borderRadius:'50%', background:'radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)', filter:'blur(45px)', pointerEvents:'none' }} />
+
+      {/* GRID */}
+      <div style={{ position:'absolute', inset:0, opacity:0.03, backgroundImage:`linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)`, backgroundSize:'40px 40px', pointerEvents:'none' }} />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        style={{
+          width: '100%', maxWidth: 520,
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 24, padding: '36px 32px',
+          backdropFilter: 'blur(20px)',
+          position: 'relative', zIndex: 10,
+        }}
+      >
+        {/* TOP ACCENT */}
+        <div style={{ position:'absolute', top:0, left:'20%', right:'20%', height:1, background:'linear-gradient(to right, transparent, rgba(99,102,241,0.6), transparent)', borderRadius:1 }} />
+
+        {/* SUCCESS OVERLAY */}
+        <AnimatePresence>
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{
+                position:'absolute', inset:0, borderRadius:24,
+                background:'rgba(10,10,15,0.97)',
+                display:'flex', flexDirection:'column',
+                alignItems:'center', justifyContent:'center',
+                gap:16, zIndex:20,
+              }}
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type:'spring', stiffness:200, delay:0.1 }}
+                style={{
+                  width:72, height:72, borderRadius:'50%',
+                  background:'rgba(16,185,129,0.15)',
+                  border:'2px solid rgba(16,185,129,0.4)',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                }}
+              >
+                <CheckCircle2 size={32} style={{ color:'#34d399' }} />
+              </motion.div>
+              <p style={{ color:'#fff', fontSize:18, fontWeight:800 }}>Notes Uploaded!</p>
+              <p style={{ color:'#6b7280', fontSize:13 }}>PDF saved successfully</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* HEADER */}
-        <div className="relative bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-white">
-          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top,_white,_transparent_60%)]" />
-          <h1 className="relative text-3xl font-extrabold flex items-center gap-3">
-            <BookOpen size={34} /> Upload Study Notes
-          </h1>
-          <p className="relative text-sm opacity-90 mt-1">
-            Admin Panel • Notes Management
-          </p>
+        <div style={{ marginBottom: 28 }}>
+          <button
+            onClick={() => router.push('/admin/dashboard')}
+            style={{
+              display:'flex', alignItems:'center', gap:6,
+              background:'none', border:'none', cursor:'pointer',
+              color:'#6b7280', fontSize:12, marginBottom:20,
+              padding:0,
+            }}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = '#9ca3af'}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = '#6b7280'}
+          >
+            <ArrowLeft size={14} /> Back to Dashboard
+          </button>
+
+          <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+            <div style={{
+              width:48, height:48, borderRadius:14,
+              background:'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2))',
+              border:'1px solid rgba(99,102,241,0.3)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              flexShrink:0,
+            }}>
+              <BookOpen size={22} style={{ color:'#818cf8' }} />
+            </div>
+            <div>
+              <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3 }}>
+                <div style={{ width:18, height:18, borderRadius:5, background:'linear-gradient(135deg,#8b5cf6,#6366f1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <Atom size={11} style={{ color:'#fff' }} />
+                </div>
+                <span style={{ color:'#6b7280', fontSize:11, fontWeight:600, letterSpacing:'0.05em' }}>VIKRAM CLASSES</span>
+              </div>
+              <h1 style={{ color:'#fff', fontSize:20, fontWeight:800, margin:0 }}>Upload Study Notes</h1>
+              <p style={{ color:'#6b7280', fontSize:12, marginTop:2 }}>Admin • Notes Management</p>
+            </div>
+          </div>
         </div>
 
+        {/* ERROR */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity:0, height:0, marginBottom:0 }}
+              animate={{ opacity:1, height:'auto', marginBottom:20 }}
+              exit={{ opacity:0, height:0, marginBottom:0 }}
+              style={{
+                background:'rgba(239,68,68,0.1)',
+                border:'1px solid rgba(239,68,68,0.25)',
+                borderRadius:12, padding:'10px 14px',
+                color:'#fca5a5', fontSize:13,
+                display:'flex', alignItems:'center', justifyContent:'space-between', gap:8,
+              }}
+            >
+              <span>{error}</span>
+              <button onClick={() => setError('')} style={{ background:'none', border:'none', cursor:'pointer', color:'#fca5a5', padding:0, display:'flex' }}>
+                <X size={14} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* FORM */}
-        <div className="p-6 md:p-10 space-y-6">
+        <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
-          {/* GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* SELECT GRID */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            {fields.map(({ label, icon, value, onChange, options, prefix }) => (
+              <div key={label}>
+                <label style={labelStyle}>{label}</label>
+                <div style={{ position:'relative' }}>
+                  <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:'#4b5563', pointerEvents:'none' }}>
+                    {icon}
+                  </div>
+                  <select
+                    value={value}
+                    onChange={e => onChange(e.target.value)}
+                    style={inputBase}
+                    onFocus={e => (e.target as HTMLSelectElement).style.borderColor = 'rgba(99,102,241,0.5)'}
+                    onBlur={e => (e.target as HTMLSelectElement).style.borderColor = 'rgba(255,255,255,0.08)'}
+                  >
+                    <option value="" style={{ background:'#111' }}>Select {label}</option>
+                    {options.map((o: string) => (
+                      <option key={o} value={o} style={{ background:'#111' }}>{prefix}{o}</option>
+                    ))}
+                  </select>
+                  <div style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', color:'#4b5563', pointerEvents:'none', fontSize:10 }}>▼</div>
+                </div>
+              </div>
+            ))}
 
-            <SelectField
-              label="Medium"
-              icon={<Layers size={18} />}
-              value={medium}
-              onChange={setMedium}
-              options={["Hindi", "English"]}
-            />
-
-            <SelectField
-              label="Class"
-              icon={<GraduationCap size={18} />}
-              value={classNum}
-              onChange={setClassNum}
-              options={["11", "12"]}
-              prefix="Class "
-            />
-
-            <SelectField
-              label="Subject"
-              icon={<Book size={18} />}
-              value={subject}
-              onChange={setSubject}
-              options={["Physics", "Chemistry", "Maths", "Biology"]}
-            />
-
-            <div>
-              <label className="text-sm font-semibold">Chapter Name</label>
-              <input
-                value={chapter}
-                onChange={(e) => setChapter(e.target.value)}
-                placeholder="e.g. Thermodynamics"
-                className="mt-1 w-full rounded-xl border border-gray-300 px-4 py-3
-                focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
+            {/* CHAPTER NAME — spans full width */}
+            <div style={{ gridColumn:'1 / -1' }}>
+              <label style={labelStyle}>Chapter Name</label>
+              <div style={{ position:'relative' }}>
+                <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:'#4b5563', pointerEvents:'none' }}>
+                  <FileText size={16} />
+                </div>
+                <input
+                  type="text"
+                  placeholder="e.g. Thermodynamics, Organic Chemistry..."
+                  value={chapter}
+                  onChange={e => setChapter(e.target.value)}
+                  style={inputBase}
+                  onFocus={e => e.target.style.borderColor = 'rgba(99,102,241,0.5)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
+                />
+              </div>
             </div>
           </div>
 
-          {/* PDF */}
+          {/* PDF UPLOAD */}
           <div>
-            <label className="text-sm font-semibold">Upload PDF Notes</label>
-
+            <label style={labelStyle}>PDF File</label>
             <label
-              className={`mt-2 flex flex-col items-center justify-center gap-3
-              border-2 border-dashed rounded-2xl p-8 cursor-pointer transition
-              ${
-                pdf
-                  ? "border-green-400 bg-green-50"
-                  : "border-indigo-400 hover:bg-indigo-50"
-              }`}
+              style={{
+                display:'flex', flexDirection:'column', alignItems:'center',
+                justifyContent:'center', gap:12,
+                border: pdf
+                  ? '1px solid rgba(16,185,129,0.35)'
+                  : '1px dashed rgba(99,102,241,0.3)',
+                borderRadius:16, padding:'28px 20px',
+                cursor:'pointer', transition:'all 0.2s',
+                background: pdf
+                  ? 'rgba(16,185,129,0.05)'
+                  : 'rgba(99,102,241,0.03)',
+              }}
+              onMouseEnter={e => !pdf && ((e.currentTarget as HTMLLabelElement).style.background = 'rgba(99,102,241,0.07)')}
+              onMouseLeave={e => !pdf && ((e.currentTarget as HTMLLabelElement).style.background = 'rgba(99,102,241,0.03)')}
             >
               {pdf ? (
                 <>
-                  <CheckCircle size={42} className="text-green-600" />
-                  <span className="text-sm text-green-700 font-medium break-all">
-                    {pdf.name}
-                  </span>
+                  <div style={{ width:48, height:48, borderRadius:14, background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.3)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    <CheckCircle2 size={24} style={{ color:'#34d399' }} />
+                  </div>
+                  <div style={{ textAlign:'center' }}>
+                    <p style={{ color:'#34d399', fontSize:13, fontWeight:600 }}>{pdf.name}</p>
+                    <p style={{ color:'#6b7280', fontSize:11, marginTop:4 }}>
+                      {(pdf.size / 1024 / 1024).toFixed(2)} MB • Click to change
+                    </p>
+                  </div>
                 </>
               ) : (
                 <>
-                  <FileText size={42} className="text-indigo-600" />
-                  <span className="text-sm text-gray-600">
-                    Click to upload PDF file
-                  </span>
+                  <div style={{ width:48, height:48, borderRadius:14, background:'rgba(99,102,241,0.1)', border:'1px solid rgba(99,102,241,0.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    <UploadCloud size={24} style={{ color:'#818cf8' }} />
+                  </div>
+                  <div style={{ textAlign:'center' }}>
+                    <p style={{ color:'#9ca3af', fontSize:13, fontWeight:500 }}>Click to upload PDF</p>
+                    <p style={{ color:'#4b5563', fontSize:11, marginTop:3 }}>Only .pdf files accepted</p>
+                  </div>
                 </>
               )}
-
-              <input
-                type="file"
-                accept="application/pdf"
-                hidden
-                onChange={(e) => setPdf(e.target.files?.[0] || null)}
-              />
+              <input type="file" accept="application/pdf" hidden onChange={e => setPdf(e.target.files?.[0] || null)} />
             </label>
           </div>
 
-          {/* BUTTON */}
-          <button
+          {/* SUBMIT */}
+          <motion.button
             onClick={submit}
             disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600
-            hover:from-indigo-700 hover:to-purple-700
-            text-white py-4 rounded-xl font-semibold text-lg
-            shadow-xl transition disabled:opacity-60
-            flex items-center justify-center gap-3"
+            whileHover={{ scale: loading ? 1 : 1.02 }}
+            whileTap={{ scale: loading ? 1 : 0.98 }}
+            style={{
+              width:'100%', marginTop:4, padding:'13px 0',
+              background: loading
+                ? 'rgba(99,102,241,0.3)'
+                : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              border:'none', borderRadius:13,
+              color:'#fff', fontSize:14, fontWeight:700,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+              boxShadow: loading ? 'none' : '0 4px 20px rgba(99,102,241,0.3)',
+              transition:'all 0.2s',
+            }}
           >
-            <UploadCloud size={22} />
-            {loading ? "Uploading Notes..." : "Upload Notes"}
-          </button>
-
+            {loading ? (
+              <>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                  style={{ width:16, height:16, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.3)', borderTopColor:'#fff' }}
+                />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <UploadCloud size={16} />
+                Upload Notes
+              </>
+            )}
+          </motion.button>
         </div>
-      </div>
-    </div>
-  );
-}
 
-/* ================= SELECT FIELD ================= */
-
-function SelectField({
-  label,
-  icon,
-  value,
-  onChange,
-  options,
-  prefix = "",
-}: any) {
-  return (
-    <div>
-      <label className="text-sm font-semibold">{label}</label>
-      <div className="relative mt-1">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-          {icon}
-        </div>
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300
-          focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">Select {label}</option>
-          {options.map((opt: string) => (
-            <option key={opt} value={opt}>
-              {prefix}{opt}
-            </option>
-          ))}
-        </select>
-      </div>
+        {/* BOTTOM ACCENT */}
+        <div style={{ position:'absolute', bottom:0, left:'30%', right:'30%', height:1, background:'linear-gradient(to right, transparent, rgba(99,102,241,0.4), transparent)', borderRadius:1 }} />
+      </motion.div>
     </div>
   );
 }

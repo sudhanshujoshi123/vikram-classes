@@ -1,7 +1,10 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+// D:\wst\vkr\next.config.ts
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: "standalone",
+  // ❌ Yahan 'content', 'theme', 'plugins' jaise Tailwind options NAHIN aayenge
+  // ❌ 'experimental.turbo' bhi mat rakho (Next 16 me invalid hai)
 };
 
-module.exports = nextConfig;
+export default nextConfig;
