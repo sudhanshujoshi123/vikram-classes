@@ -122,7 +122,7 @@ export default function RootLayout({
                     For urgent inquiries or support regarding pending transactions, please contact our technical team:
                   </p>
                   <a 
-                    href="mailto:support@vikramclasses.com" 
+                    href="mailto:dmp@gmail.com" 
                     className="inline-flex items-center justify-center w-full md:w-auto bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-medium transition-colors border border-slate-700"
                   >
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
