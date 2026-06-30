@@ -121,7 +121,7 @@ function PaymentModal({
   <div className="text-center">
     <p className="text-xs text-gray-600 mb-1">Or pay to UPI ID:</p>
     <p className="text-sm font-bold text-gray-900 font-mono">
-      {process.env.NEXT_PUBLIC_ADMIN_UPI_ID || 'vikramclasses@ybl'}
+      {process.env.NEXT_PUBLIC_ADMIN_UPI_ID || '9557943342@axl'}
     </p>
     <p className="text-xs text-gray-500 mt-1">
       {process.env.NEXT_PUBLIC_ADMIN_UPI_NAME || 'Vikram Classes'}
