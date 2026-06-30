@@ -110,7 +110,7 @@ function PaymentModal({
 <div className="bg-white border-2 border-purple-200 rounded-xl p-4 mb-3">
   <div className="w-48 mx-auto bg-white rounded-lg overflow-hidden border border-gray-200">
     <img 
-      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=vikramclasses@ybl&pn=Vikram%20Classes&am=3&cu=INR`}
+      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=9557943342@axl&pn=Vikram%20Classes&am=3&cu=INR`}
       alt="PhonePe QR Code"
       className="w-full h-auto"
     />
