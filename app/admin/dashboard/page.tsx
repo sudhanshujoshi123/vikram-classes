@@ -6,7 +6,7 @@ import {
   Users, IndianRupee, BookOpen, BarChart3, Search,
   LogOut, Menu, X, ChevronRight, Atom, FileText,
   FlaskConical, TrendingUp, CheckCircle2, AlertCircle,
-  GraduationCap, Save, Upload, Award
+  GraduationCap, Save, Upload, Award, CreditCard, XCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -20,7 +20,19 @@ interface Student {
   amount?: number;
 }
 
-type TabType = 'students' | 'fees' | 'notes' | 'pyq' | 'practical' | 'performance';
+interface Payment {
+  id: number;
+  student_id: number;
+  student_name: string;
+  email: string;
+  class_name: string;
+  utr_number: string;
+  amount: number;
+  status: string;
+  created_at: string;
+}
+
+type TabType = 'students' | 'fees' | 'notes' | 'pyq' | 'practical' | 'performance' | 'payments';
 
 /* ─── STAT CARD ─── */
 function StatCard({ label, value, icon, iconColor, iconBg, valueColor }: {
@@ -113,12 +125,10 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
   if (total <= 1) return null;
 
   const pages = Array.from({ length: total }, (_, i) => i + 1);
-  // Show max 5 page buttons around current
   const visible = pages.filter(p =>
     p === 1 || p === total || Math.abs(p - page) <= 1
   );
 
-  // Insert ellipsis markers
   const withEllipsis: (number | '...')[] = [];
   visible.forEach((p, i) => {
     if (i > 0 && (p as number) - (visible[i - 1] as number) > 1) withEllipsis.push('...');
@@ -127,15 +137,12 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
 
   return (
     <div className="flex items-center justify-between mt-5 px-1">
-      {/* LEFT INFO */}
       <p className="text-xs text-gray-600">
         Page <span className="text-gray-400 font-semibold">{page}</span> of{' '}
         <span className="text-gray-400 font-semibold">{total}</span>
       </p>
 
-      {/* BUTTONS */}
       <div className="flex items-center gap-1">
-        {/* PREV */}
         <button
           onClick={() => onChange(page - 1)}
           disabled={page === 1}
@@ -147,7 +154,6 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
           ← Prev
         </button>
 
-        {/* PAGE NUMBERS */}
         {withEllipsis.map((p, i) =>
           p === '...' ? (
             <span key={`e${i}`} className="px-2 text-gray-600 text-xs select-none">…</span>
@@ -167,7 +173,6 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
           )
         )}
 
-        {/* NEXT */}
         <button
           onClick={() => onChange(page + 1)}
           disabled={page === total}
@@ -193,6 +198,7 @@ export default function AdminDashboard() {
   }, [router]);
 
   const [students, setStudents] = useState<Student[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('students');
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
   const [amounts, setAmounts] = useState<{ [key: number]: number }>({});
@@ -200,6 +206,7 @@ export default function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [savedIds, setSavedIds] = useState<number[]>([]);
+  const [processingPaymentId, setProcessingPaymentId] = useState<number | null>(null);
 
   const [perf, setPerf] = useState({
     student_id: '', test_name: '', marks: '', max_marks: '', remarks: '',
@@ -225,8 +232,28 @@ export default function AdminDashboard() {
     } finally { setLoading(false); }
   };
 
+  /* FETCH PAYMENTS */
+  const fetchPayments = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/verify-payment');
+      const data = await res.json();
+      if (data.success) {
+        setPayments(data.payments);
+      }
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (activeTab !== 'notes' && activeTab !== 'pyq' && activeTab !== 'practical') fetchData();
+    if (activeTab === 'payments') {
+      fetchPayments();
+    } else if (activeTab !== 'notes' && activeTab !== 'pyq' && activeTab !== 'practical') {
+      fetchData();
+    }
   }, [activeTab, month]);
 
   /* DERIVED STATS */
@@ -240,7 +267,6 @@ export default function AdminDashboard() {
   const [studentsPage, setStudentsPage] = useState(1);
   const [feesPage, setFeesPage] = useState(1);
 
-  // Reset page on search change
   useEffect(() => { setStudentsPage(1); setFeesPage(1); }, [search]);
   useEffect(() => { setStudentsPage(1); }, [activeTab]);
 
@@ -249,6 +275,39 @@ export default function AdminDashboard() {
 
   const paginatedStudents = filteredStudents.slice((studentsPage - 1) * PAGE_SIZE, studentsPage * PAGE_SIZE);
   const paginatedFees     = filteredStudents.slice((feesPage - 1)     * PAGE_SIZE, feesPage     * PAGE_SIZE);
+
+  /* PAYMENT ACTIONS */
+  const handlePaymentAction = async (paymentId: number, studentId: number, className: string, action: 'verify' | 'reject') => {
+    if (action === 'verify') {
+      if (!confirm('Are you sure you want to verify this payment and activate subscription for 3 months?')) return;
+    } else {
+      if (!confirm('Are you sure you want to reject this payment?')) return;
+    }
+
+    setProcessingPaymentId(paymentId);
+
+    try {
+      const res = await fetch('/api/admin/verify-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId, studentId, className, action }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert(`Payment ${action === 'verify' ? 'verified' : 'rejected'} successfully!`);
+        fetchPayments();
+      } else {
+        alert(data.error || 'Failed to process payment');
+      }
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      alert('Something went wrong');
+    } finally {
+      setProcessingPaymentId(null);
+    }
+  };
 
   /* PERFORMANCE PREVIEW */
   const performanceStats = useMemo(() => {
@@ -296,6 +355,7 @@ export default function AdminDashboard() {
   const navItems: { id: TabType; icon: React.ReactNode; label: string; badge?: string }[] = [
     { id: 'students', icon: <Users size={17} />, label: 'Students', badge: String(students.length || '') },
     { id: 'fees', icon: <IndianRupee size={17} />, label: 'Fees' },
+    { id: 'payments', icon: <CreditCard size={17} />, label: 'Payments', badge: String(payments.length || '') },
     { id: 'notes', icon: <BookOpen size={17} />, label: 'Notes' },
     { id: 'pyq', icon: <FileText size={17} />, label: 'PYQ Papers' },
     { id: 'practical', icon: <FlaskConical size={17} />, label: 'Practicals' },
@@ -426,6 +486,133 @@ export default function AdminDashboard() {
         {/* CONTENT */}
         <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6">
           <AnimatePresence mode="wait">
+
+            {/* ─── PAYMENTS ─── */}
+            {activeTab === 'payments' && (
+              <motion.div key="payments"
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
+
+                {/* STATS ROW */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}
+                  className="lg:grid-cols-3">
+                  <StatCard
+                    label="Pending Payments"
+                    value={payments.filter(p => p.status === 'pending').length}
+                    icon={<CreditCard size={16} />}
+                    iconColor="#fbbf24" iconBg="rgba(245,158,11,0.15)" valueColor="#fcd34d"
+                  />
+                  <StatCard
+                    label="Total Revenue"
+                    value={`₹${payments.filter(p => p.status === 'completed').reduce((a, p) => a + p.amount, 0)}`}
+                    icon={<IndianRupee size={16} />}
+                    iconColor="#34d399" iconBg="rgba(16,185,129,0.15)" valueColor="#6ee7b7"
+                  />
+                  <StatCard
+                    label="Total Transactions"
+                    value={payments.length}
+                    icon={<TrendingUp size={16} />}
+                    iconColor="#818cf8" iconBg="rgba(99,102,241,0.15)" valueColor="#a5b4fc"
+                  />
+                </div>
+
+                {loading ? <LoadingDots /> : (
+                  <>
+                    {payments.length === 0 ? (
+                      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-12 text-center">
+                        <CreditCard size={48} className="mx-auto text-gray-600 mb-4" />
+                        <p className="text-gray-400 text-lg font-semibold">No pending payments</p>
+                        <p className="text-gray-600 text-sm mt-2">All payments have been processed</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {payments.map((payment) => (
+                          <motion.div
+                            key={payment.id}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6"
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Student</p>
+                                <p className="font-semibold text-white">{payment.student_name}</p>
+                                <p className="text-xs text-gray-500 mt-0.5">{payment.email}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Class</p>
+                                <p className="font-semibold text-white">{payment.class_name}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Amount</p>
+                                <p className="font-bold text-2xl" style={{ color: '#6ee7b7' }}>₹{payment.amount}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">UTR Number</p>
+                                <p className="font-mono text-sm text-gray-300 bg-white/[0.04] px-3 py-1.5 rounded-lg inline-block">
+                                  {payment.utr_number}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Date</p>
+                                <p className="text-sm text-gray-400">
+                                  {new Date(payment.created_at).toLocaleString('en-IN')}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Status</p>
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
+                                  ${payment.status === 'pending' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+                                    payment.status === 'completed' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
+                                    'bg-red-500/20 text-red-300 border border-red-500/30'}`}>
+                                  {payment.status === 'pending' && <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full" />}
+                                  {payment.status === 'completed' && <CheckCircle2 size={12} />}
+                                  {payment.status === 'rejected' && <XCircle size={12} />}
+                                  {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {payment.status === 'pending' && (
+                              <div className="flex gap-3 pt-4 border-t border-white/[0.06]">
+                                <button
+                                  onClick={() => handlePaymentAction(payment.id, payment.student_id, payment.class_name, 'verify')}
+                                  disabled={processingPaymentId === payment.id}
+                                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
+                                    bg-emerald-500/20 text-emerald-300 border border-emerald-500/30
+                                    hover:bg-emerald-500/30 transition-all duration-200 font-semibold text-sm
+                                    disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {processingPaymentId === payment.id ? (
+                                    'Processing...'
+                                  ) : (
+                                    <><CheckCircle2 size={16} /> Verify & Activate (3 months)</>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => handlePaymentAction(payment.id, payment.student_id, payment.class_name, 'reject')}
+                                  disabled={processingPaymentId === payment.id}
+                                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
+                                    bg-red-500/20 text-red-300 border border-red-500/30
+                                    hover:bg-red-500/30 transition-all duration-200 font-semibold text-sm
+                                    disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {processingPaymentId === payment.id ? (
+                                    'Processing...'
+                                  ) : (
+                                    <><XCircle size={16} /> Reject</>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </motion.div>
+            )}
 
             {/* ─── STUDENTS ─── */}
             {activeTab === 'students' && (

@@ -1,40 +1,33 @@
-import { NextResponse } from "next/server";
-import { pool } from "@/lib/db";
+import { NextResponse } from 'next/server';
+import { pool } from '@/lib/db';
 
-export async function GET(req: Request) {
+export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
+    const medium = searchParams.get('medium');
+    const classNum = searchParams.get('class');
+    const subject = searchParams.get('subject');
 
-    const medium = searchParams.get("medium");
-    const classNum = searchParams.get("class");
-    const subject = searchParams.get("subject");
-
-    if (!medium || !classNum || !subject) {
-      return NextResponse.json(
-        { notes: [] },
-        { status: 200 }
-      );
-    }
+    console.log('📚 Fetching notes for:', { medium, classNum, subject });
 
     const result = await pool.query(
-      `
-      SELECT chapter_name, pdf_url
-      FROM notes
-      WHERE medium = $1
-        AND class = $2
-        AND subject = $3
-      ORDER BY created_at DESC
-      `,
+      `SELECT id, medium, class, subject, chapter_name, pdf_url, created_at 
+       FROM notes 
+       WHERE medium = $1 AND class = $2 AND subject = $3 
+       ORDER BY chapter_name`,
       [medium, classNum, subject]
     );
 
-    return NextResponse.json({ notes: result.rows });
+    console.log('✅ Notes from DB:', result.rows);
+    if (result.rows.length > 0) {
+      console.log('✅ First note ID:', result.rows[0].id);
+    }
 
-  } catch (err) {
-    console.error("STUDENT NOTES ERROR:", err);
-    return NextResponse.json(
-      { error: "Failed to load notes" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      notes: result.rows
+    });
+  } catch (error) {
+    console.error('❌ Error fetching notes:', error);
+    return NextResponse.json({ notes: [] }, { status: 500 });
   }
 }
