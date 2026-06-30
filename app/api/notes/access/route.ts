@@ -6,7 +6,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     let { studentId, chapterId, className } = body;
 
-    console.log('📝 Access Request:', { studentId, chapterId, className });
+    console.log(' Access Request:', { studentId, chapterId, className });
 
     // Convert to proper types
     studentId = Number(studentId);

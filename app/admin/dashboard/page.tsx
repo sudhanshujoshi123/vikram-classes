@@ -26,6 +26,7 @@ interface Payment {
   student_name: string;
   email: string;
   class_name: string;
+  chapter_id: number;
   utr_number: string;
   amount: number;
   status: string;
@@ -276,8 +277,8 @@ export default function AdminDashboard() {
   const paginatedStudents = filteredStudents.slice((studentsPage - 1) * PAGE_SIZE, studentsPage * PAGE_SIZE);
   const paginatedFees     = filteredStudents.slice((feesPage - 1)     * PAGE_SIZE, feesPage     * PAGE_SIZE);
 
-  /* PAYMENT ACTIONS */
-  const handlePaymentAction = async (paymentId: number, studentId: number, className: string, action: 'verify' | 'reject') => {
+  /* PAYMENT ACTIONS - UPDATED WITH chapterId */
+  const handlePaymentAction = async (paymentId: number, studentId: number, className: string, chapterId: number, action: 'verify' | 'reject') => {
     if (action === 'verify') {
       if (!confirm('Are you sure you want to verify this payment and activate subscription for 3 months?')) return;
     } else {
@@ -290,7 +291,7 @@ export default function AdminDashboard() {
       const res = await fetch('/api/admin/verify-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentId, studentId, className, action }),
+        body: JSON.stringify({ paymentId, studentId, className, chapterId, action }),
       });
 
       const data = await res.json();
@@ -576,7 +577,7 @@ export default function AdminDashboard() {
                             {payment.status === 'pending' && (
                               <div className="flex gap-3 pt-4 border-t border-white/[0.06]">
                                 <button
-                                  onClick={() => handlePaymentAction(payment.id, payment.student_id, payment.class_name, 'verify')}
+                                  onClick={() => handlePaymentAction(payment.id, payment.student_id, payment.class_name, payment.chapter_id, 'verify')}
                                   disabled={processingPaymentId === payment.id}
                                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
                                     bg-emerald-500/20 text-emerald-300 border border-emerald-500/30
@@ -590,7 +591,7 @@ export default function AdminDashboard() {
                                   )}
                                 </button>
                                 <button
-                                  onClick={() => handlePaymentAction(payment.id, payment.student_id, payment.class_name, 'reject')}
+                                  onClick={() => handlePaymentAction(payment.id, payment.student_id, payment.class_name, payment.chapter_id, 'reject')}
                                   disabled={processingPaymentId === payment.id}
                                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
                                     bg-red-500/20 text-red-300 border border-red-500/30
