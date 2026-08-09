@@ -701,7 +701,7 @@ function Contact() {
           />
           <ContactCard
             role="System Architect & Developer"
-            name="Mr. Sudhanshu Joshi"
+            name="Mr. Sudhanshu Joshi [BTKIT Dwarahat]"
             phone="7900431779"
             emails={["sudhanshu24r@gmail.com"]}
             gradient="from-indigo-500/10 to-violet-500/10"
