@@ -5,11 +5,10 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpen, IndianRupee, BarChart3, FileText, X,
-  LogOut, Bell, Search, ChevronRight, Atom,
-  FlaskConical, Menu
+  LogOut, Menu, ChevronRight, Atom, FlaskConical
 } from 'lucide-react';
 
-type TabType = 'notes' | 'fees' | 'performance';
+type TabType = 'notes' | 'pyq' | 'practical' | 'fees' | 'performance';
 
 interface Note { 
   id: number;
@@ -96,38 +95,37 @@ function PaymentModal({
           <p className="text-xs text-gray-400 mt-1">Class {className}</p>
         </div>
 
-      <div className="bg-white rounded-2xl p-6 mb-4">
-  <div className="text-center mb-4">
-    <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full mb-2">
-      <span className="text-2xl">पे</span>
-      <span className="text-lg font-bold text-purple-900">PhonePe</span>
-    </div>
-    <p className="text-sm font-bold text-purple-900">ACCEPTED HERE</p>
-    <p className="text-xs text-gray-600 mt-1">Scan & Pay Using PhonePe App</p>
-  </div>
-  
-  {/* QR Code Image */}
-<div className="bg-white border-2 border-purple-200 rounded-xl p-4 mb-3">
-  <div className="w-48 mx-auto bg-white rounded-lg overflow-hidden border border-gray-200">
-    <img 
-      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=9557943342@axl&pn=Vikram%20Classes&am=3&cu=INR`}
-      alt="PhonePe QR Code"
-      className="w-full h-auto"
-    />
-  </div>
-  <p className="text-xs text-gray-600 text-center mt-2 font-semibold">Scan to Pay ₹3</p>
-</div>
-  
-  <div className="text-center">
-    <p className="text-xs text-gray-600 mb-1">Or pay to UPI ID:</p>
-    <p className="text-sm font-bold text-gray-900 font-mono">
-      {process.env.NEXT_PUBLIC_ADMIN_UPI_ID || '9557943342@axl'}
-    </p>
-    <p className="text-xs text-gray-500 mt-1">
-      {process.env.NEXT_PUBLIC_ADMIN_UPI_NAME || 'Vikram Classes'}
-    </p>
-  </div>
-</div>
+        <div className="bg-white rounded-2xl p-6 mb-4">
+          <div className="text-center mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full mb-2">
+              <span className="text-2xl">पे</span>
+              <span className="text-lg font-bold text-purple-900">PhonePe</span>
+            </div>
+            <p className="text-sm font-bold text-purple-900">ACCEPTED HERE</p>
+            <p className="text-xs text-gray-600 mt-1">Scan & Pay Using PhonePe App</p>
+          </div>
+          
+          <div className="bg-white border-2 border-purple-200 rounded-xl p-4 mb-3">
+            <div className="w-48 mx-auto bg-white rounded-lg overflow-hidden border border-gray-200">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=9557943342@axl&pn=Vikram%20Classes&am=3&cu=INR`}
+                alt="PhonePe QR Code"
+                className="w-full h-auto"
+              />
+            </div>
+            <p className="text-xs text-gray-600 text-center mt-2 font-semibold">Scan to Pay ₹3</p>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-xs text-gray-600 mb-1">Or pay to UPI ID:</p>
+            <p className="text-sm font-bold text-gray-900 font-mono">
+              {process.env.NEXT_PUBLIC_ADMIN_UPI_ID || '9557943342@axl'}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {process.env.NEXT_PUBLIC_ADMIN_UPI_NAME || 'Vikram Classes'}
+            </p>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -179,6 +177,8 @@ export default function StudentDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [notes, setNotes] = useState<Note[]>([]);
+  const [pyqs, setPyqs] = useState<any[]>([]);
+  const [practicals, setPracticals] = useState<any[]>([]);
   const [monthlyFees, setMonthlyFees] = useState<MonthlyFee[]>([]);
   const [totalFees, setTotalFees] = useState(0);
   const [performance, setPerformance] = useState<Performance[]>([]);
@@ -191,7 +191,14 @@ export default function StudentDashboard() {
   const [subject, setSubject] = useState('');
   const [search, setSearch] = useState('');
 
+  const [pyqClass, setPyqClass] = useState('');
+  const [pyqSubject, setPyqSubject] = useState('');
+  const [practicalClass, setPracticalClass] = useState('');
+  const [practicalSubject, setPracticalSubject] = useState('');
+
   const [loadingNotes, setLoadingNotes] = useState(false);
+  const [loadingPyq, setLoadingPyq] = useState(false);
+  const [loadingPractical, setLoadingPractical] = useState(false);
   const [loadingFees, setLoadingFees] = useState(true);
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -227,7 +234,6 @@ export default function StudentDashboard() {
       try {
         const res = await fetch(`/api/student/notes?medium=${medium}&class=${classNum}&subject=${subject}`);
         const data = await res.json();
-        console.log('📚 Notes fetched:', data.notes);
         setNotes(data.notes || []);
       } catch (error) {
         console.error('Error fetching notes:', error);
@@ -238,6 +244,44 @@ export default function StudentDashboard() {
     };
     fetchNotes();
   }, [medium, classNum, subject]);
+
+  /* FETCH PYQ */
+  useEffect(() => {
+    if (activeTab === 'pyq' && pyqClass && pyqSubject) {
+      const fetchPyq = async () => {
+        setLoadingPyq(true);
+        try {
+          const res = await fetch(`/api/student/pyq?class=${pyqClass}&subject=${pyqSubject}`);
+          const data = await res.json();
+          setPyqs(data.pyq || []);
+        } catch (error) {
+          console.error('Error fetching PYQ:', error);
+        } finally {
+          setLoadingPyq(false);
+        }
+      };
+      fetchPyq();
+    }
+  }, [activeTab, pyqClass, pyqSubject]);
+
+  /* FETCH PRACTICAL */
+  useEffect(() => {
+    if (activeTab === 'practical' && practicalClass && practicalSubject) {
+      const fetchPractical = async () => {
+        setLoadingPractical(true);
+        try {
+          const res = await fetch(`/api/student/practical?class=${practicalClass}&subject=${practicalSubject}`);
+          const data = await res.json();
+          setPracticals(data.practicals || []);
+        } catch (error) {
+          console.error('Error fetching practical:', error);
+        } finally {
+          setLoadingPractical(false);
+        }
+      };
+      fetchPractical();
+    }
+  }, [activeTab, practicalClass, practicalSubject]);
 
   /* FETCH FEES */
   useEffect(() => {
@@ -281,18 +325,13 @@ export default function StudentDashboard() {
 
   /* ACCESS NOTE */
   const accessNote = async (note: Note) => {
-    console.log('📖 Note object:', note);
-    console.log('📖 Note ID:', note.id);
-
     if (!studentId) {
       alert('Please login first');
       return;
     }
 
     const chapterId = note.id;
-    
     if (!chapterId) {
-      console.error('❌ Note has no ID:', note);
       alert('Invalid note - missing ID');
       return;
     }
@@ -309,7 +348,6 @@ export default function StudentDashboard() {
       });
 
       const data = await res.json();
-      console.log('📥 API Response:', data);
 
       if (data.requiresPayment) {
         setSelectedNote(note);
@@ -318,7 +356,6 @@ export default function StudentDashboard() {
       }
 
       if (data.success) {
-        // Open PDF in viewer modal instead of downloading
         setOpenPdf(data.note.url);
         setNoteAccessCount(c => c + 1);
       } else {
@@ -341,6 +378,8 @@ export default function StudentDashboard() {
 
   const navItems: { id: TabType; icon: React.ReactNode; label: string }[] = [
     { id: 'notes', icon: <BookOpen size={18} />, label: 'Study Notes' },
+    { id: 'pyq', icon: <FileText size={18} />, label: 'PYQ Papers' },
+    { id: 'practical', icon: <FlaskConical size={18} />, label: 'Practicals' },
     { id: 'fees', icon: <IndianRupee size={18} />, label: 'Fees' },
     { id: 'performance', icon: <BarChart3 size={18} />, label: 'Performance' },
   ];
@@ -450,7 +489,6 @@ export default function StudentDashboard() {
                   </div>
                 )}
 
-                {/* NOTES GRID */}
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {notes
                     .filter(n => n.chapter_name.toLowerCase().includes(search.toLowerCase()))
@@ -475,6 +513,124 @@ export default function StudentDashboard() {
                         </button>
                       </motion.div>
                     ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* PYQ TAB */}
+            {activeTab === 'pyq' && (
+              <motion.div key="pyq" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1.5 uppercase">Class</label>
+                    <select value={pyqClass} onChange={e => setPyqClass(e.target.value)} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50">
+                      <option value="">Select Class</option>
+                      <option value="11">Class 11</option>
+                      <option value="12">Class 12</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1.5 uppercase">Subject</label>
+                    <select value={pyqSubject} onChange={e => setPyqSubject(e.target.value)} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50">
+                      <option value="">Select Subject</option>
+                      <option value="Physics">Physics</option>
+                      <option value="Chemistry">Chemistry</option>
+                      <option value="Mathematics">Mathematics</option>
+                    </select>
+                  </div>
+                </div>
+
+                {loadingPyq && <div className="flex items-center justify-center py-16"><div className="text-gray-400">Loading PYQ papers...</div></div>}
+
+                {!loadingPyq && pyqs.length === 0 && pyqClass && pyqSubject && (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <FileText size={48} className="text-gray-700 mb-4" />
+                    <p className="font-semibold text-gray-500 text-sm">No PYQ Papers Found</p>
+                    <p className="text-xs text-gray-700 mt-1">Select Class & Subject to view previous year papers</p>
+                  </div>
+                )}
+
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pyqs.map((pyq: any, index) => (
+                    <motion.div 
+                      key={pyq.id || index}
+                      initial={{ opacity: 0, y: 20 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      className="group bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] transition-all"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4">
+                        <FileText size={18} />
+                      </div>
+                      <p className="text-xs text-cyan-400 font-medium mb-1">{pyq.subject} • Class {pyq.class}</p>
+                      <h3 className="font-bold text-white text-base leading-snug mb-2">{pyq.year || 'Previous Year Paper'}</h3>
+                      <p className="text-xs text-gray-500 mb-4">Previous Year Question Paper</p>
+                      <button 
+                        onClick={() => window.open(pyq.pdf_url, '_blank')} 
+                        className="w-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 text-cyan-300 text-sm font-semibold py-2 rounded-xl transition flex items-center justify-center gap-2"
+                      >
+                        <FileText size={14} /> Open PYQ
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* PRACTICAL TAB */}
+            {activeTab === 'practical' && (
+              <motion.div key="practical" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1.5 uppercase">Class</label>
+                    <select value={practicalClass} onChange={e => setPracticalClass(e.target.value)} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50">
+                      <option value="">Select Class</option>
+                      <option value="11">Class 11</option>
+                      <option value="12">Class 12</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1.5 uppercase">Subject</label>
+                    <select value={practicalSubject} onChange={e => setPracticalSubject(e.target.value)} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50">
+                      <option value="">Select Subject</option>
+                      <option value="Physics">Physics</option>
+                      <option value="Chemistry">Chemistry</option>
+                      <option value="Biology">Biology</option>
+                    </select>
+                  </div>
+                </div>
+
+                {loadingPractical && <div className="flex items-center justify-center py-16"><div className="text-gray-400">Loading practicals...</div></div>}
+
+                {!loadingPractical && practicals.length === 0 && practicalClass && practicalSubject && (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <FlaskConical size={48} className="text-gray-700 mb-4" />
+                    <p className="font-semibold text-gray-500 text-sm">No Practicals Found</p>
+                    <p className="text-xs text-gray-700 mt-1">Select Class & Subject to view practical PDFs</p>
+                  </div>
+                )}
+
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {practicals.map((practical: any, index) => (
+                    <motion.div 
+                      key={practical.id || index}
+                      initial={{ opacity: 0, y: 20 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      className="group bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 hover:border-violet-500/30 hover:bg-violet-500/[0.04] transition-all"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 mb-4">
+                        <FlaskConical size={18} />
+                      </div>
+                      <p className="text-xs text-violet-400 font-medium mb-1">{practical.subject} • Class {practical.class}</p>
+                      <h3 className="font-bold text-white text-base leading-snug mb-2">{practical.experiment_name || 'Practical Experiment'}</h3>
+                      <p className="text-xs text-gray-500 mb-4">Lab Practical PDF</p>
+                      <button 
+                        onClick={() => window.open(practical.pdf_url, '_blank')} 
+                        className="w-full bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-300 text-sm font-semibold py-2 rounded-xl transition flex items-center justify-center gap-2"
+                      >
+                        <FileText size={14} /> Open Practical
+                      </button>
+                    </motion.div>
+                  ))}
                 </div>
               </motion.div>
             )}
@@ -588,7 +744,6 @@ export default function StudentDashboard() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex flex-col"
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 bg-[#0f0f1a] border-b border-white/[0.06]">
               <div className="flex items-center gap-2 text-sm text-gray-400">
                 <FileText size={14} />
@@ -602,7 +757,6 @@ export default function StudentDashboard() {
               </button>
             </div>
 
-            {/* PDF Viewer */}
             <div className="flex-1 bg-gray-900">
               <iframe
                 src={`https://docs.google.com/gview?url=${encodeURIComponent(openPdf)}&embedded=true`}
