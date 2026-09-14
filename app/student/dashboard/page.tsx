@@ -564,12 +564,12 @@ export default function StudentDashboard() {
                       <p className="text-xs text-cyan-400 font-medium mb-1">{pyq.subject} • Class {pyq.class}</p>
                       <h3 className="font-bold text-white text-base leading-snug mb-2">{pyq.year || 'Previous Year Paper'}</h3>
                       <p className="text-xs text-gray-500 mb-4">Previous Year Question Paper</p>
-                      <button 
-                        onClick={() => window.open(pyq.pdf_url, '_blank')} 
-                        className="w-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 text-cyan-300 text-sm font-semibold py-2 rounded-xl transition flex items-center justify-center gap-2"
-                      >
-                        <FileText size={14} /> Open PYQ
-                      </button>
+                     <button 
+  onClick={() => setOpenPdf(pyq.pdf_url)}  // window.open() ki jagah
+  className="w-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 text-cyan-300 text-sm font-semibold py-2 rounded-xl transition flex items-center justify-center gap-2"
+>
+  <FileText size={14} /> Open PYQ
+</button>
                     </motion.div>
                   ))}
                 </div>
@@ -626,11 +626,11 @@ export default function StudentDashboard() {
           </h3>
           <p className="text-xs text-gray-500 mb-4">Lab Practical PDF</p>
           <button 
-            onClick={() => window.open(practical.pdf_url, '_blank')} 
-            className="w-full bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-300 text-sm font-semibold py-2 rounded-xl transition flex items-center justify-center gap-2"
-          >
-            <FileText size={14} /> Open Practical
-          </button>
+  onClick={() => setOpenPdf(practical.pdf_url)}
+  className="w-full bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-300 text-sm font-semibold py-2 rounded-xl transition flex items-center justify-center gap-2"
+>
+  <FileText size={14} /> Open Practical
+</button>
         </motion.div>
       ))}
     </div>
