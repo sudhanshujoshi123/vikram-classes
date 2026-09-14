@@ -577,63 +577,65 @@ export default function StudentDashboard() {
             )}
 
             {/* PRACTICAL TAB */}
-            {activeTab === 'practical' && (
-              <motion.div key="practical" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1.5 uppercase">Class</label>
-                    <select value={practicalClass} onChange={e => setPracticalClass(e.target.value)} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50">
-                      <option value="">Select Class</option>
-                      <option value="11">Class 11</option>
-                      <option value="12">Class 12</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1.5 uppercase">Subject</label>
-                    <select value={practicalSubject} onChange={e => setPracticalSubject(e.target.value)} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50">
-                      <option value="">Select Subject</option>
-                      <option value="Physics">Physics</option>
-                      <option value="Chemistry">Chemistry</option>
-                      <option value="Biology">Biology</option>
-                    </select>
-                  </div>
-                </div>
+{activeTab === 'practical' && (
+  <motion.div key="practical" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+      <div>
+        <label className="block text-xs text-gray-500 mb-1.5 uppercase">Class</label>
+        <select value={practicalClass} onChange={e => setPracticalClass(e.target.value)} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50">
+          <option value="">Select Class</option>
+          <option value="11">Class 11</option>
+          <option value="12">Class 12</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs text-gray-500 mb-1.5 uppercase">Subject</label>
+        <select value={practicalSubject} onChange={e => setPracticalSubject(e.target.value)} className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500/50">
+          <option value="">Select Subject</option>
+          <option value="Physics">Physics</option>
+          <option value="Chemistry">Chemistry</option>
+          <option value="Biology">Biology</option>
+        </select>
+      </div>
+    </div>
 
-                {loadingPractical && <div className="flex items-center justify-center py-16"><div className="text-gray-400">Loading practicals...</div></div>}
+    {loadingPractical && <div className="flex items-center justify-center py-16"><div className="text-gray-400">Loading practicals...</div></div>}
 
-                {!loadingPractical && practicals.length === 0 && practicalClass && practicalSubject && (
-                  <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <FlaskConical size={48} className="text-gray-700 mb-4" />
-                    <p className="font-semibold text-gray-500 text-sm">No Practicals Found</p>
-                    <p className="text-xs text-gray-700 mt-1">Select Class & Subject to view practical PDFs</p>
-                  </div>
-                )}
+    {!loadingPractical && practicals.length === 0 && practicalClass && practicalSubject && (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <FlaskConical size={48} className="text-gray-700 mb-4" />
+        <p className="font-semibold text-gray-500 text-sm">No Practicals Found</p>
+        <p className="text-xs text-gray-700 mt-1">Select Class & Subject to view practical PDFs</p>
+      </div>
+    )}
 
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {practicals.map((practical: any, index) => (
-                    <motion.div 
-                      key={practical.id || index}
-                      initial={{ opacity: 0, y: 20 }} 
-                      animate={{ opacity: 1, y: 0 }} 
-                      className="group bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 hover:border-violet-500/30 hover:bg-violet-500/[0.04] transition-all"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 mb-4">
-                        <FlaskConical size={18} />
-                      </div>
-                      <p className="text-xs text-violet-400 font-medium mb-1">{practical.subject} • Class {practical.class}</p>
-                      <h3 className="font-bold text-white text-base leading-snug mb-2">{practical.experiment_name || 'Practical Experiment'}</h3>
-                      <p className="text-xs text-gray-500 mb-4">Lab Practical PDF</p>
-                      <button 
-                        onClick={() => window.open(practical.pdf_url, '_blank')} 
-                        className="w-full bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-300 text-sm font-semibold py-2 rounded-xl transition flex items-center justify-center gap-2"
-                      >
-                        <FileText size={14} /> Open Practical
-                      </button>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {practicals.map((practical: any, index) => (
+        <motion.div 
+          key={practical.id || index}
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          className="group bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 hover:border-violet-500/30 hover:bg-violet-500/[0.04] transition-all"
+        >
+          <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 mb-4">
+            <FlaskConical size={18} />
+          </div>
+          <p className="text-xs text-violet-400 font-medium mb-1">{practical.subject} • Class {practical.class}</p>
+          <h3 className="font-bold text-white text-base leading-snug mb-2">
+            {practical.experiment_name || practical.chapter_name || `Practical ${index + 1}`}
+          </h3>
+          <p className="text-xs text-gray-500 mb-4">Lab Practical PDF</p>
+          <button 
+            onClick={() => window.open(practical.pdf_url, '_blank')} 
+            className="w-full bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-300 text-sm font-semibold py-2 rounded-xl transition flex items-center justify-center gap-2"
+          >
+            <FileText size={14} /> Open Practical
+          </button>
+        </motion.div>
+      ))}
+    </div>
+  </motion.div>
+)}
 
             {/* FEES TAB */}
             {activeTab === 'fees' && (
